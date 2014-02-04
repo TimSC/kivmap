@@ -12,41 +12,61 @@ class TileWidget(Widget):
 
 		with self.canvas:
 			Color(1., 1., 0)
-			Rectangle(pos=self.pos, size=(self.width, self.height))
+			self.rect = Rectangle(pos=self.pos, size=(self.width, self.height))
 			Color(0, 0.7, 0)
-			self.rect = Ellipse(pos=self.pos, size=self.size)
+			self.elli = Ellipse(pos=self.pos, size=self.size)
+
+		self.bind(pos=self.update_graphics_pos,
+			size=self.update_graphics_size)
 
 	def on_touch_down(self, touch):
-		with self.canvas:
-			Color(1, 1, 0)
-			d = 30.
-			print (touch.x - d / 2, touch.y - d / 2)
-			Ellipse(pos=(touch.x - d / 2, touch.y - d / 2), size=(d, d))
-			touch.ud['line'] = Line(points=(touch.x, touch.y))
+		pass
 
 	def on_touch_move(self, touch):
-		touch.ud['line'].points += [touch.x, touch.y]
+		pass
 
-class MapLayer(Widget):
+	def update_graphics_pos(self, instance, value):
+		print "update_graphics_pos"		
+		self.rect.pos = value
+		self.elli.pos = value
+
+	def update_graphics_size(self, instance, value):
+		print "update_graphics_size"
+
+class MapLayer(FloatLayout):
 	def __init__(self, **args):
-		Widget.__init__(self, **args)
+		FloatLayout.__init__(self, **args)
+		self.lastTouch = None
+		self.tiles = []
 
+		t = TileWidget(size=(200,200), pos=(50,50))
+		self.add_widget(t)
+		self.tiles.append(t)
+		t2 = TileWidget(size=(200,200), pos=(250,50))
+		self.add_widget(t2)
+		self.tiles.append(t2)
 
 	def on_touch_down(self, touch):
-		pass
+		print "layer touch"
+		self.lastTouch = touch.pos
 
 	def on_touch_move(self, touch):
-		pass
+		relativeMove = (touch.pos[0] - self.lastTouch[0], touch.pos[1] - self.lastTouch[1])
+		self.lastTouch = touch.pos
+		print relativeMove
+
+		for ti in self.tiles:
+			print ti.pos
+			ti.x = ti.pos[0]+relativeMove[0]
+			ti.y = ti.pos[1]+relativeMove[1]
+
+
 
 class KivMapApp(App):
 
 	def build(self):
-		layout = FloatLayout(size=(1.,1.))
-		t = TileWidget(size=(200,200), pos=(50,50))
-		layout.add_widget(t)
-		t2 = TileWidget(size=(200,200), pos=(250,50))
-		layout.add_widget(t2)
-		return layout
+
+		return MapLayer(size=(1.,1.))
 
 if __name__ == '__main__':
 	KivMapApp().run()
