@@ -9,12 +9,15 @@ class TileWidget(Widget):
 
 	def __init__(self, **args):
 		Widget.__init__(self, **args)
+		self.objs = []
 
 		with self.canvas:
+			
+
 			Color(1., 1., 0)
-			self.rect = Rectangle(pos=self.pos, size=(self.width, self.height))
+			self.objs.append(Rectangle(pos=self.pos, size=(self.width, self.height)))
 			Color(0, 0.7, 0)
-			self.elli = Ellipse(pos=self.pos, size=self.size)
+			self.objs.append(Ellipse(pos=self.pos, size=self.size))
 
 		self.bind(pos=self.update_graphics_pos,
 			size=self.update_graphics_size)
@@ -26,9 +29,9 @@ class TileWidget(Widget):
 		pass
 
 	def update_graphics_pos(self, instance, value):
-		print "update_graphics_pos"		
-		self.rect.pos = value
-		self.elli.pos = value
+		print "update_graphics_pos"
+		for obj in self.objs:
+			obj.pos = value
 
 	def update_graphics_size(self, instance, value):
 		print "update_graphics_size"
