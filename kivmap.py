@@ -5,6 +5,7 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.button import Button
 from kivy.graphics import Color, Ellipse, Line, Rectangle
 from kivy.core.window import Window
+import kivy.metrics as metrics
 import random, slippy
 
 class TileWidget(Widget):
@@ -35,7 +36,8 @@ class TileWidget(Widget):
 			obj.pos = value
 
 	def update_graphics_size(self, instance, value):
-		print "widget update_graphics_size"
+		#print "widget update_graphics_size"
+		pass
 
 class MapLayer(RelativeLayout):
 	def __init__(self, **args):
@@ -44,15 +46,12 @@ class MapLayer(RelativeLayout):
 		self.tiles = []
 		self.viewPos = (50.7, -1.3)
 		self.viewZoom = 12
+		self.tileSize = metrics.dp(200)
 
-		print "win size", Window.size
-
-		self.GetViewBounds()
-
-		t = TileWidget(size=(200,200), pos=(50,50))
+		t = TileWidget(size=(self.tileSize,self.tileSize), pos=(50,50))
 		self.add_widget(t)
 		self.tiles.append(t)
-		t2 = TileWidget(size=(200,200), pos=(250,50))
+		t2 = TileWidget(size=(self.tileSize,self.tileSize), pos=(50+self.tileSize,50))
 		self.add_widget(t2)
 		self.tiles.append(t2)
 
@@ -74,13 +73,20 @@ class MapLayer(RelativeLayout):
 		tilex, tiley = slippy.deg2num(self.viewPos[0], self.viewPos[1], self.viewZoom)
 		print "centre tile pos", tilex, tiley
 		print "layout size", self.size
-		print "layout size", self.size_hint
+		left = tilex - 0.5 * self.size[0] / self.tileSize
+		right = tilex + 0.5 * self.size[0] / self.tileSize
+		top = tiley - 0.5 * self.size[1] / self.tileSize
+		bottom = tiley + 0.5 * self.size[1] / self.tileSize
+
+		print left, right, top, bottom
+
 		#print slippy.num2deg(tilex, tiley, self.viewZoom)
 		#print slippy.num2deg(tilex+1, tiley, self.viewZoom)
 		#print slippy.num2deg(tilex, tiley+1, self.viewZoom)
 
 	def update_graphics_size(self, instance, value):
 		print "layout update_graphics_size", self.size_hint, self.size
+		self.GetViewBounds()
 
 	def update_graphics_pos(self, instance, value):
 		pass
