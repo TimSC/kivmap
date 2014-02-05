@@ -8,7 +8,6 @@ class Map(object):
 		
 	def AddPlugin(self, plugin):
 		self.plugins.append(plugin)
-		#maphighways.MapHighways()
 
 	def Draw(self, bounds, zoom, hints):		
 

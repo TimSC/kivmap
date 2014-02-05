@@ -8,6 +8,10 @@ class MapHighways(object):
 
 	def DrawProcessing(self, bounds, zoom, hints, layer):
 		print "draw layer", layer
+		if self.source is None: return
+
+		highwayNetwork = self.source.GetHighwayNetwork()
+		print len(highwayNetwork)
 
 	def SetSource(self, source):
 		self.source = source
