@@ -3,6 +3,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.button import Button
+from kivy.uix.label import Label
 from kivy.graphics import Color, Ellipse, Line, Rectangle
 from kivy.core.window import Window
 import kivy.metrics as metrics
@@ -20,6 +21,9 @@ class TileWidget(Widget):
 			self.objs.append(Rectangle(pos=self.pos, size=(self.width, self.height)))
 			Color(0, 0.7, 0)
 			self.objs.append(Ellipse(pos=self.pos, size=self.size))
+			Color(0, 0, 0.4)
+			self.objs.append(Label(pos=self.pos), text="test")
+
 
 		self.bind(pos=self.update_graphics_pos,
 			size=self.update_graphics_size)
