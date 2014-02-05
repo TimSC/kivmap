@@ -2,7 +2,7 @@
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.relativelayout import RelativeLayout
 import kivy.metrics as metrics
-import tile, slippy, osmfile, map
+import tile, slippy, osmfile, map, maphighways
 
 class MapLayer(RelativeLayout):
 	def __init__(self, **args):
@@ -13,7 +13,10 @@ class MapLayer(RelativeLayout):
 		self.viewZoom = 12
 		self.tileSize = metrics.dp(512)
 		self.map = map.Map()
-		self.map.SetSource(osmfile.OsmFile("IsleOfWight-Fosm-Oct2013.osm.bz2"))
+		source = osmfile.OsmFile("IsleOfWight-Fosm-Oct2013.osm.bz2")
+		highways = maphighways.MapHighways()
+		highways.SetSource(source)
+		self.map.AddPlugin(highways)
 
 		self.bind(pos=self.update_graphics_pos,
 			size=self.update_graphics_size)
