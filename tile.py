@@ -1,24 +1,28 @@
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
+from kivy.uix.scatter import Scatter
 from kivy.graphics import Color, Ellipse, Line, Rectangle
 import slippy
 
-class TileWidget(Widget):
+class TileWidget(Scatter):
 
 	def __init__(self, **args):
-		Widget.__init__(self, **args)
+		Scatter.__init__(self, **args)
+		self.do_rotation = False
+		self.do_scale = False
+		self.do_translation = False
 		self.objs = []
 		self.tileNum = (None, None)
 		self.tileZoom = None
 
 		with self.canvas:
 			Color(1., 1., 0)
-			self.objs.append(Rectangle(pos=self.pos, size=(self.width, self.height)))
+			self.objs.append(Rectangle(pos=(0., 0), size=(self.width, self.height)))
 			Color(0, 0.7, 0)
-			self.objs.append(Ellipse(pos=self.pos, size=self.size))
+			self.objs.append(Ellipse(pos=(0., 0), size=self.size))
 			Color(0, 0, 0.4)
-			self.label = Label(pos=self.pos, text="test")
+			self.label = Label(pos=(0., 0), text="test")
 			self.objs.append(self.label)
 
 		self.bind(pos=self.update_graphics_pos,
@@ -37,8 +41,9 @@ class TileWidget(Widget):
 		pass
 
 	def update_graphics_pos(self, instance, value):
-		for obj in self.objs:
-			obj.pos = value
+		#for obj in self.objs:
+		#	obj.pos = value
+		pass
 
 	def update_graphics_size(self, instance, value):
 		#print "widget update_graphics_size"
@@ -51,6 +56,10 @@ class TileWidget(Widget):
 		if self.map is not None:
 			tl = slippy.num2deg(self.tileNum[0], self.tileNum[1], self.tileZoom)
 			br = slippy.num2deg(self.tileNum[0]+1, self.tileNum[1]+1, self.tileZoom)
-			print tl, br
-			self.map.Draw((tl[0]), self.tileZoom, hints)
+			self.map.Draw((tl[1], br[0], br[1], tl[0]), self.tileZoom, hints, self.DrawCallback)
+			#bounds left,bottom,right,top
+
+	def DrawCallback(self, obj):
+		self.objs.append(obj)
+		self.canvas.add(obj)
 

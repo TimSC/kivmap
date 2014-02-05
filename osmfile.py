@@ -77,11 +77,14 @@ class OsmFile(object):
 
 	def GetHighwayNetwork(self, bounds=None, hints={}):
 		wayLines = []
+		print "GetHighwayNetwork", bounds
 		for objId in self.osmParse.ways:
 			w = self.osmParse.ways[objId]
 			tags = w[1]
 			if 'highway' not in tags:
 				continue
+
+			wayInRoi = False
 
 			wayNodes = []
 			for ntag, nid in w[2]:
@@ -92,11 +95,22 @@ class OsmFile(object):
 				nodeObj = self.osmParse.nodes[nidInt]	
 				nodeAttrs = nodeObj[0]
 				nodeTags = nodeObj[1]
-				wayNodes.append((nidInt, (float(nodeAttrs['lat']), float(nodeAttrs['lon'])), nodeAttrs, nodeTags))
+				nodeLat = float(nodeAttrs['lat'])
+				nodeLon = float(nodeAttrs['lon'])
+	
+				wayNodes.append((nidInt, (nodeLat, nodeLon), nodeAttrs, nodeTags))
+
+				if wayInRoi is False and bounds is not None and \
+					nodeLat >= bounds[1] and nodeLat < bounds[3] and \
+					nodeLon >= bounds[0] and nodeLon < bounds[2]: 
+				
+					wayInRoi = True	
+			
 
 			#print objId, tags, w[2], wayNodes
 
-			wayLines.append(('line', objId, tags, wayNodes))
+			if wayInRoi or bounds is None:
+				wayLines.append(('line', objId, tags, wayNodes))
 		return wayLines
 
 	def GetRailNetwork(self):
