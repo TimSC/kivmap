@@ -2,7 +2,7 @@
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.relativelayout import RelativeLayout
 import kivy.metrics as metrics
-import tile, slippy
+import tile, slippy, osmfile, render, style
 
 class MapLayer(RelativeLayout):
 	def __init__(self, **args):
@@ -12,6 +12,8 @@ class MapLayer(RelativeLayout):
 		self.viewPos = (50.7, -1.3)
 		self.viewZoom = 12
 		self.tileSize = metrics.dp(512)
+		self.renderer = render.Render()
+		self.renderer.SetSource(osmfile.OsmFile("IsleOfWight-Fosm-Oct2013.osm.bz2"))
 
 		self.bind(pos=self.update_graphics_pos,
 			size=self.update_graphics_size)
