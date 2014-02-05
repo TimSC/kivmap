@@ -81,7 +81,7 @@ class MapLayer(RelativeLayout):
 					winPos = (x - left) * self.size[0] / (right - left), (bottom - (y+1)) * self.size[1] / (bottom - top)
 					#print x, y, "winPos", winPos
 					ti = tile.TileWidget(size=(self.tileSize,self.tileSize), pos=winPos)
-					ti.SetTileNum(x, y)
+					ti.SetTileNum(x, y, self.viewZoom)
 					tileRow[y] = ti
 					self.add_widget(tileRow[y])
 

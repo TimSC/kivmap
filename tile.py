@@ -9,6 +9,7 @@ class TileWidget(Widget):
 		Widget.__init__(self, **args)
 		self.objs = []
 		self.tileNum = (None, None)
+		self.zoom = None
 
 		with self.canvas:
 			Color(1., 1., 0)
@@ -22,8 +23,11 @@ class TileWidget(Widget):
 		self.bind(pos=self.update_graphics_pos,
 			size=self.update_graphics_size)
 	
-	def SetTileNum(self, x, y):
-		self.label.text = "{0}, {1}".format(x, y)
+	def SetTileNum(self, x, y, zoom):
+		self.tileNum = (x, y)
+		self.tileZoom = zoom
+		self.label.text = "[color=0000ff]{0}, {1}, {2}[/color]".format(x, y, zoom)
+		self.label.markup = True
 
 	def on_touch_down(self, touch):
 		pass
