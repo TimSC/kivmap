@@ -24,6 +24,7 @@ class ExpatParse(object):
 		self.depth += 1
 		self.tags.append(name)
 		self.attr.append(attrs)
+		print tag, attrs
 
 	def HandleEndElement(self, name): 
 		self.depth -= 1
@@ -38,7 +39,7 @@ class OsmFile(object):
 		if finaSplit[1] == ".bz2":
 			fi = bz2.BZ2File(fina)
 		if finaSplit[1] == ".osm":
-			fi = open(fina, "wt")
+			fi = open(fina, "rt")
 		if fi is None:
 			raise Exception ("Unknown file extension "+str(finaSplit[1]))
 		
