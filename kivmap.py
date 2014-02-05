@@ -22,11 +22,14 @@ class TileWidget(Widget):
 			Color(0, 0.7, 0)
 			self.objs.append(Ellipse(pos=self.pos, size=self.size))
 			Color(0, 0, 0.4)
-			self.objs.append(Label(pos=self.pos), text="test")
-
+			self.label = Label(pos=self.pos, text="test")
+			self.objs.append(self.label)
 
 		self.bind(pos=self.update_graphics_pos,
 			size=self.update_graphics_size)
+	
+	def SetTileNum(self, x, y):
+		self.label.text = "{0}, {1}".format(x, y)
 
 	def on_touch_down(self, touch):
 		pass
@@ -70,7 +73,7 @@ class MapLayer(RelativeLayout):
 		dy = (bottom - top) * fractRelativeMove[1]
 		tilex, tiley = slippy.deg2num(self.viewPos[0], self.viewPos[1], self.viewZoom)
 		tilex -= dx
-		tiley -= dy
+		tiley += dy
 		self.viewPos = slippy.num2deg(tilex, tiley, self.viewZoom)
 
 		self.UpdateExistingTilePositions()
@@ -84,7 +87,7 @@ class MapLayer(RelativeLayout):
 		for x in self.tiles:
 			tileRow = self.tiles[x]
 			for y in tileRow:
-				winPos = (x - left) * self.size[0] / (right - left), (y - top) * self.size[1] / (bottom - top)
+				winPos = (x - left) * self.size[0] / (right - left), (bottom - y) * self.size[1] / (bottom - top)
 				ti = tileRow[y]
 				ti.pos = winPos
 
@@ -104,7 +107,7 @@ class MapLayer(RelativeLayout):
 		rleft = int(left)
 		rright = int(right) + 1
 		rtop = int(top)
-		rbottom = int(bottom) + 1
+		rbottom = int(bottom) + 2
 		#print rleft, rright, rtop, rbottom 
 		
 		
@@ -115,10 +118,10 @@ class MapLayer(RelativeLayout):
 			for y in range(rtop, rbottom):
 				if y not in tileRow:
 					print "Add widget", x, y
-					winPos = (x - left) * self.size[0] / (right - left), (y - top) * self.size[1] / (bottom - top)
+					winPos = (x - left) * self.size[0] / (right - left), (bottom - y) * self.size[1] / (bottom - top)
 					#print x, y, "winPos", winPos
 					ti = TileWidget(size=(self.tileSize,self.tileSize), pos=winPos)
-					ti.tileNum = (x, y)
+					ti.SetTileNum(x, y)
 					tileRow[y] = ti
 					self.add_widget(tileRow[y])
 
@@ -128,7 +131,7 @@ class MapLayer(RelativeLayout):
 		rleft = int(left)
 		rright = int(right) + 1
 		rtop = int(top)
-		rbottom = int(bottom) + 1
+		rbottom = int(bottom) + 2
 		#print rleft, rright, rtop, rbottom 
 		
 		for x in self.tiles:
