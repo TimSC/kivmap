@@ -46,12 +46,13 @@ class MapLayer(RelativeLayout):
 		for x in self.tiles:
 			tileRow = self.tiles[x]
 			for y in tileRow:
-				winPos = (x - left) * self.size[0] / (right - left), (bottom - y) * self.size[1] / (bottom - top)
+				winPos = (x - left) * self.size[0] / (right - left), (bottom - (y+1)) * self.size[1] / (bottom - top)
 				ti = tileRow[y]
 				ti.pos = winPos
 
 	def GetViewBounds(self):
 		tilex, tiley = slippy.deg2num(self.viewPos[0], self.viewPos[1], self.viewZoom)
+		#print tilex, tiley
 
 		left = tilex - 0.5 * self.size[0] / self.tileSize
 		right = tilex + 0.5 * self.size[0] / self.tileSize
@@ -66,7 +67,7 @@ class MapLayer(RelativeLayout):
 		rleft = int(left)
 		rright = int(right) + 1
 		rtop = int(top)
-		rbottom = int(bottom) + 2
+		rbottom = int(bottom) + 1
 		#print rleft, rright, rtop, rbottom 
 		
 		
@@ -77,7 +78,7 @@ class MapLayer(RelativeLayout):
 			for y in range(rtop, rbottom):
 				if y not in tileRow:
 					print "Add widget", x, y
-					winPos = (x - left) * self.size[0] / (right - left), (bottom - y) * self.size[1] / (bottom - top)
+					winPos = (x - left) * self.size[0] / (right - left), (bottom - (y+1)) * self.size[1] / (bottom - top)
 					#print x, y, "winPos", winPos
 					ti = tile.TileWidget(size=(self.tileSize,self.tileSize), pos=winPos)
 					ti.SetTileNum(x, y)
@@ -90,7 +91,7 @@ class MapLayer(RelativeLayout):
 		rleft = int(left)
 		rright = int(right) + 1
 		rtop = int(top)
-		rbottom = int(bottom) + 2
+		rbottom = int(bottom) + 1
 		#print rleft, rright, rtop, rbottom 
 		
 		for x in self.tiles:
