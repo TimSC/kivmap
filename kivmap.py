@@ -13,6 +13,7 @@ class TileWidget(Widget):
 	def __init__(self, **args):
 		Widget.__init__(self, **args)
 		self.objs = []
+		self.tileNum = (None, None)
 
 		with self.canvas:
 			Color(1., 1., 0)
@@ -70,6 +71,7 @@ class MapLayer(RelativeLayout):
 
 		self.UpdateExistingTilePositions()
 		self.AddNewTilesAsRequired()
+		self.RemoveUnneededTiles()
 
 	def UpdateExistingTilePositions(self):
 
@@ -101,21 +103,47 @@ class MapLayer(RelativeLayout):
 		rbottom = int(bottom) + 1
 		#print rleft, rright, rtop, rbottom 
 		
+		
 		for x in range(rleft, rright):
 			if x not in self.tiles:
 				self.tiles[x] = {}
 			tileRow = self.tiles[x]
 			for y in range(rtop, rbottom):
 				if y not in tileRow:
+					print "Add widget", x, y
 					winPos = (x - left) * self.size[0] / (right - left), (y - top) * self.size[1] / (bottom - top)
 					#print x, y, "winPos", winPos
-					tileRow[y] = TileWidget(size=(self.tileSize,self.tileSize), pos=winPos)
+					ti = TileWidget(size=(self.tileSize,self.tileSize), pos=winPos)
+					ti.tileNum = (x, y)
+					tileRow[y] = ti
 					self.add_widget(tileRow[y])
+
+	def RemoveUnneededTiles(self):
+		left, right, top, bottom = self.GetViewBounds()
+		#print left, right, top, bottom
+		rleft = int(left)
+		rright = int(right) + 1
+		rtop = int(top)
+		rbottom = int(bottom) + 1
+		#print rleft, rright, rtop, rbottom 
+		
+		for x in self.tiles:
+			tileRow = self.tiles[x]
+			tilesToRemove = []
+			for y in tileRow:
+				if y < rtop or y >= rbottom:
+					tilesToRemove.append(y)
+
+			for y in tilesToRemove:
+				print "Remove widget", x, y
+				self.remove_widget(tileRow[y])
+				del tileRow[y]
 
 	def update_graphics_size(self, instance, value):
 		print "layout update_graphics_size", self.size_hint, self.size
 		self.UpdateExistingTilePositions()
-		self.AddNewTilesAsRequired()	
+		self.AddNewTilesAsRequired()
+		self.RemoveUnneededTiles()
 
 	def update_graphics_pos(self, instance, value):
 		pass
