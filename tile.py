@@ -2,6 +2,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.graphics import Color, Ellipse, Line, Rectangle
+import slippy
 
 class TileWidget(Widget):
 
@@ -9,7 +10,7 @@ class TileWidget(Widget):
 		Widget.__init__(self, **args)
 		self.objs = []
 		self.tileNum = (None, None)
-		self.zoom = None
+		self.tileZoom = None
 
 		with self.canvas:
 			Color(1., 1., 0)
@@ -42,4 +43,14 @@ class TileWidget(Widget):
 	def update_graphics_size(self, instance, value):
 		#print "widget update_graphics_size"
 		pass
+
+	def SetMap(self, map):
+		self.map = map
+
+	def Draw(self, hints={}):
+		if self.map is not None:
+			tl = slippy.num2deg(self.tileNum[0], self.tileNum[1], self.tileZoom)
+			br = slippy.num2deg(self.tileNum[0]+1, self.tileNum[1]+1, self.tileZoom)
+			print tl, br
+			self.map.Draw((tl[0]), self.tileZoom, hints)
 

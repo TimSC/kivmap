@@ -3,7 +3,7 @@ import bz2, os
 import xml.parsers.expat as expat
 from xml.sax.saxutils import escape, quoteattr
 
-class ExpatParse(object):
+class OsmParse(object):
 	def __init__(self):
 		self.parser = expat.ParserCreate()
 		self.parser.CharacterDataHandler = self.HandleCharData
@@ -12,6 +12,11 @@ class ExpatParse(object):
 		self.depth = 0
 		self.tags = []
 		self.attr = []
+		self.objectTags = {}
+		self.objectMembers = []
+		self.nodes = {}
+		self.ways = {}
+		self.relations = {}
 
 	def ParseFile(self, fi):
 		self.fiTmp = fi
@@ -24,13 +29,33 @@ class ExpatParse(object):
 		self.depth += 1
 		self.tags.append(name)
 		self.attr.append(attrs)
-		print tag, attrs
+
+		if self.depth == 2:
+			self.objectTags = {}
+			self.objectMembers = []
+
+		if self.depth == 3:
+			if name == "tag":
+				self.objectTags[attrs['k']] = attrs['v']
+			else:
+				self.objectMembers.append((name, attrs))
 
 	def HandleEndElement(self, name): 
+		if self.depth == 2:
+			#At this point, the entire object is available, inc tags and members
+			objAttr = self.attr[-1]
+			objId = int(objAttr['id'])
+			#print name, objAttr, self.objectTags, self.objectMembers
+			if name == "node":
+				self.nodes[objId] = (objAttr, self.objectTags, self.objectMembers)
+			if name == "way":
+				self.ways[objId] = (objAttr, self.objectTags, self.objectMembers)
+			if name == "relation":
+				self.relations[objId] = (objAttr, self.objectTags, self.objectMembers)
+
 		self.depth -= 1
 		self.tags.pop()
 		self.attr.pop()
-
 
 class OsmFile(object):
 	def __init__(self, fina):
@@ -43,11 +68,36 @@ class OsmFile(object):
 		if fi is None:
 			raise Exception ("Unknown file extension "+str(finaSplit[1]))
 		
-		expatParse = ExpatParse()
-		expatParse.ParseFile(fi)
+		self.osmParse = OsmParse()
+		self.osmParse.ParseFile(fi)
 
-	def GetRoadNetwork(self):
-		pass
+		print "Read {0} nodes, {1} ways, {2} relations".format(len(self.osmParse.nodes),
+			len(self.osmParse.ways),
+			len(self.osmParse.relations))
+
+	def GetHighwayNetwork(self, bounds=None, hints={}):
+		wayLines = []
+		for objId in self.osmParse.ways:
+			w = self.osmParse.ways[objId]
+			tags = w[1]
+			if 'highway' not in tags:
+				continue
+
+			wayNodes = []
+			for ntag, nid in w[2]:
+				nidInt = int(nid['ref'])
+				if nidInt not in self.osmParse.nodes:
+					wayNodes.append((nidInt, None, None, None))
+					continue
+				nodeObj = self.osmParse.nodes[nidInt]	
+				nodeAttrs = nodeObj[0]
+				nodeTags = nodeObj[1]
+				wayNodes.append((nidInt, (float(nodeAttrs['lat']), float(nodeAttrs['lon'])), nodeAttrs, nodeTags))
+
+			#print objId, tags, w[2], wayNodes
+
+			wayLines.append(('line', objId, tags, wayNodes))
+		return wayLines
 
 	def GetRailNetwork(self):
 		pass
@@ -63,4 +113,10 @@ class OsmFile(object):
 
 	def GetInfrastructure(self):
 		pass
+
+
+if __name__ == "__main__":
+	
+	f = OsmFile("IsleOfWight-Fosm-Oct2013.osm.bz2")
+	print len(f.GetHighwayNetwork())
 
