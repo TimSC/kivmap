@@ -3,15 +3,42 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.scatter import Scatter
 from kivy.graphics import Color, Ellipse, Line, Rectangle
+from kivy.uix.stencilview import StencilView
 import slippy
 
 class TileWidget(Scatter):
-
 	def __init__(self, **args):
 		Scatter.__init__(self, **args)
 		self.do_rotation = False
 		self.do_scale = False
 		self.do_translation = False
+
+		self.bind(pos=self.update_graphics_pos,
+			size=self.update_graphics_size)
+
+		self.tileView = TileView(size=(512, 512))
+		self.add_widget(self.tileView)
+
+	def update_graphics_pos(self, instance, value):
+		pass
+
+	def update_graphics_size(self, instance, value):
+		pass
+
+	def SetMap(self, map):
+		self.tileView.SetMap(map)
+
+	def SetTileNum(self, x, y, zoom):
+		self.tileView.SetTileNum(x, y, zoom)
+
+	def Draw(self, hints={}):
+		self.tileView.Draw(hints)
+
+class TileView(StencilView):
+
+	def __init__(self, **args):
+		StencilView.__init__(self, **args)
+
 		self.objs = []
 		self.tileNum = (None, None)
 		self.tileZoom = None
