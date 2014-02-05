@@ -56,7 +56,8 @@ class TileWidget(Scatter):
 		if self.map is not None:
 			tl = slippy.num2deg(self.tileNum[0], self.tileNum[1], self.tileZoom)
 			br = slippy.num2deg(self.tileNum[0]+1, self.tileNum[1]+1, self.tileZoom)
-			self.map.Draw((tl[1], br[0], br[1], tl[0]), self.tileZoom, hints, self.DrawCallback)
+			proj = slippy.TileProj(self.tileNum[0], self.tileNum[1], self.tileZoom, self.size[0], self.size[1])
+			self.map.Draw((tl[1], br[0], br[1], tl[0]), self.tileZoom, hints, self.DrawCallback, proj.Proj)
 			#bounds left,bottom,right,top
 
 	def DrawCallback(self, obj):

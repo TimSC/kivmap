@@ -9,7 +9,7 @@ class Map(object):
 	def AddPlugin(self, plugin):
 		self.plugins.append(plugin)
 
-	def Draw(self, bounds, zoom, hints, DrawCallback):		
+	def Draw(self, bounds, zoom, hints, DrawCallback, Proj):		
 
 		processingSteps = set()
 
@@ -24,7 +24,7 @@ class Map(object):
 			nextStep = sortableSteps[0]
 			processingSteps.discard(nextStep)
 
-			nextStep[1].DrawProcessing(bounds, zoom, hints, nextStep[0], DrawCallback)
+			nextStep[1].DrawProcessing(bounds, zoom, hints, nextStep[0], DrawCallback, Proj)
 
 		#Land and water
 
