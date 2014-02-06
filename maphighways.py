@@ -28,14 +28,14 @@ class MapHighways(object):
 			'tertiary_link': {'col': 0xf3f488, 'width': 1},
 			'living_street': {'col': 0xc5ffb6}, 
 			'pedestrian': {'col': 0xc5ffb6}, 
-			#'track', 
-			#'bus_guideway', 
-			#'raceway', 
-			#'road',
-			#'footway', 
-			#'bridleway', 
-			#'steps', 
-			#'path'
+			'track': {'col': 0xae7355, 'width': 1},
+			'bus_guideway': {'col': 0xc8d5ff, 'width': 1},
+			'raceway': {'col': 0xc5ffb6, 'width': 1}, 
+			'road': {'col': 0xffffd9, 'width': 1},
+			'footway': {'col': 0xfff668, 'width': 1}, 
+			'bridleway': {'col': 0x4799ff, 'width': 1},
+			'steps': {'col': 0xfff668, 'width': 1}, 
+			'path': {'col': 0xfff668, 'width': 1},
 			}
 
 	def StartDrawing(self, bounds, zoom, hints):
