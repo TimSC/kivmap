@@ -13,6 +13,7 @@ class Map(object):
 
 		processingSteps = set()
 
+		#Get initial list of steps to perform rendering
 		for pl in self.plugins:
 			steps = pl.StartDrawing(bounds, zoom, hints)
 			for step in steps:
@@ -24,7 +25,11 @@ class Map(object):
 			nextStep = sortableSteps[0]
 			processingSteps.discard(nextStep)
 
-			nextStep[1].DrawProcessing(bounds, zoom, hints, nextStep[0], DrawCallback, Proj)
+			extraSteps = nextStep[1].DrawProcessing(bounds, zoom, hints, nextStep[0], DrawCallback, Proj)
+
+			#Append extra steps to task list
+			for step in extraSteps:
+				processingSteps.add((step, nextStep[1]))
 
 		#Land and water
 
