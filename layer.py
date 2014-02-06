@@ -2,6 +2,7 @@
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.relativelayout import RelativeLayout
 import kivy.metrics as metrics
+from kivy.clock import Clock
 import tile, slippy, osmfile, map, maphighways
 
 class MapLayer(RelativeLayout):
@@ -17,6 +18,7 @@ class MapLayer(RelativeLayout):
 		highways = maphighways.MapHighways()
 		highways.SetSource(source)
 		self.map.AddPlugin(highways)
+		Clock.schedule_interval(self.LateRendering, 0.1)
 
 		self.bind(pos=self.update_graphics_pos,
 			size=self.update_graphics_size)
@@ -88,7 +90,7 @@ class MapLayer(RelativeLayout):
 					ti = tile.TileWidget(size=(self.tileSize,self.tileSize), pos=winPos)
 					ti.SetTileNum(x, y, self.viewZoom)
 					ti.SetMap(self.map)
-					ti.Draw()
+					#ti.Draw()
 					tileRow[y] = ti
 					self.add_widget(tileRow[y])
 
@@ -121,3 +123,15 @@ class MapLayer(RelativeLayout):
 
 	def update_graphics_pos(self, instance, value):
 		pass
+
+	def LateRendering(self, arg):
+		for x in self.tiles:
+			tileRow = self.tiles[x]
+			for y in tileRow:
+				ti = tileRow[y]
+				if ti.IsDrawDone(): continue
+				ti.Draw()
+				return True
+
+		return True
+

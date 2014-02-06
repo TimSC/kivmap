@@ -18,6 +18,7 @@ class TileWidget(Scatter):
 
 		self.tileView = TileView(size=(512, 512))
 		self.add_widget(self.tileView)
+		self.drawDone = False
 
 	def update_graphics_pos(self, instance, value):
 		pass
@@ -31,8 +32,12 @@ class TileWidget(Scatter):
 	def SetTileNum(self, x, y, zoom):
 		self.tileView.SetTileNum(x, y, zoom)
 
+	def IsDrawDone(self):
+		return self.drawDone
+
 	def Draw(self, hints={}):
 		self.tileView.Draw(hints)
+		self.drawDone = True
 
 class TileView(StencilView):
 
