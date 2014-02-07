@@ -47,6 +47,7 @@ class TileView(StencilView):
 		self.objs = []
 		self.tileNum = (None, None)
 		self.tileZoom = None
+		self.clearcolor = (1, 0, 0, 1)
 
 		with self.canvas:
 			#Color(1., 1., 0)
@@ -85,6 +86,8 @@ class TileView(StencilView):
 		self.map = map
 
 	def Draw(self, hints={}):
+
+		self.clear_widgets()
 		if self.map is not None:
 			tl = slippy.num2deg(self.tileNum[0], self.tileNum[1], self.tileZoom)
 			br = slippy.num2deg(self.tileNum[0]+1, self.tileNum[1]+1, self.tileZoom)
