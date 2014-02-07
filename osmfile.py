@@ -3,6 +3,81 @@ import bz2, os
 import xml.parsers.expat as expat
 from xml.sax.saxutils import escape, quoteattr
 
+class OsmObjToLinesAndPolys(object):
+	def __init__(self):
+		self.tagsOfInterest = {}
+		self.closeWaysAreAreas = True
+
+	def AddTagOfInterest(self, key, val="*"):
+		if key not in self.tagsOfInterest:
+			self.tagsOfInterest[key] = []
+		self.tagsOfInterest[key].append(val)
+
+	def Do(self, osmParseObj, bounds = None):
+
+		wayLines = []
+		for objId in osmParseObj.ways:
+			w = osmParseObj.ways[objId]
+			tags = w[1]
+			isArea = False
+			ofInterest = False
+			
+			for tagOfInterest in self.tagsOfInterest:
+				if tagOfInterest in tags:
+					searchVal = self.tagsOfInterest[tagOfInterest]
+					if "*" in searchVal:
+						ofInterest = True
+					if tags[tagOfInterest] in searchVal:
+						ofInterest = True
+
+			if not ofInterest:
+				continue
+
+			wayInRoi = False
+			wayNodes = []
+			firstNode = w[2][0][1]
+			lastNode = w[2][-1][1]
+
+			if self.closeWaysAreAreas and int(firstNode['ref']) == int(lastNode['ref']):
+				isArea = True
+
+			if 'area' in tags:
+				areaValue = str(tags['area'])
+				if areaValue.lower() in ["yes", "1"]:
+					isArea = True
+				if areaValue.lower() in ["no", "0"]:
+					isArea = False
+
+			for ntag, nid in w[2]:
+				nidInt = int(nid['ref'])
+				if nidInt not in osmParseObj.nodes:
+					wayNodes.append((nidInt, None, None, None))
+					continue
+				nodeObj = osmParseObj.nodes[nidInt]	
+				nodeAttrs = nodeObj[0]
+				nodeTags = nodeObj[1]
+				nodeLat = float(nodeAttrs['lat'])
+				nodeLon = float(nodeAttrs['lon'])
+	
+				wayNodes.append((nidInt, (nodeLat, nodeLon), nodeAttrs, nodeTags))
+
+				if wayInRoi is False and bounds is not None and \
+					nodeLat >= bounds[1] and nodeLat < bounds[3] and \
+					nodeLon >= bounds[0] and nodeLon < bounds[2]: 
+				
+					wayInRoi = True	
+			
+			#print objId, tags, w[2], wayNodes
+
+			if wayInRoi or bounds is None:
+				if isArea:
+					wayLines.append(('poly', objId, tags, wayNodes[:-1]))
+				else:
+					wayLines.append(('line', objId, tags, wayNodes))
+		return wayLines
+
+
+
 class OsmParse(object):
 	def __init__(self):
 		self.parser = expat.ParserCreate()
@@ -76,112 +151,22 @@ class OsmFile(object):
 			len(self.osmParse.relations))
 
 	def GetHighwayNetwork(self, bounds=None, hints={}):
-		wayLines = []
-		print "GetHighwayNetwork", bounds
-		for objId in self.osmParse.ways:
-			w = self.osmParse.ways[objId]
-			tags = w[1]
-			if 'highway' not in tags:
-				continue
 
-			wayInRoi = False
-
-			wayNodes = []
-			for ntag, nid in w[2]:
-				nidInt = int(nid['ref'])
-				if nidInt not in self.osmParse.nodes:
-					wayNodes.append((nidInt, None, None, None))
-					continue
-				nodeObj = self.osmParse.nodes[nidInt]	
-				nodeAttrs = nodeObj[0]
-				nodeTags = nodeObj[1]
-				nodeLat = float(nodeAttrs['lat'])
-				nodeLon = float(nodeAttrs['lon'])
-	
-				wayNodes.append((nidInt, (nodeLat, nodeLon), nodeAttrs, nodeTags))
-
-				if wayInRoi is False and bounds is not None and \
-					nodeLat >= bounds[1] and nodeLat < bounds[3] and \
-					nodeLon >= bounds[0] and nodeLon < bounds[2]: 
-				
-					wayInRoi = True	
-			
-
-			#print objId, tags, w[2], wayNodes
-
-			if wayInRoi or bounds is None:
-				wayLines.append(('line', objId, tags, wayNodes))
-		return wayLines
+		osmObjToLinesAndPolys = OsmObjToLinesAndPolys()
+		osmObjToLinesAndPolys.AddTagOfInterest('highway',"*")
+		shapes = osmObjToLinesAndPolys.Do(self.osmParse, bounds)
+		return shapes
 
 	def GetRailNetwork(self, bounds=None, hints={}):
 		pass
 
 	def GetWater(self, bounds=None, hints={}):
-
-		wayLines = []
-		for objId in self.osmParse.ways:
-			w = self.osmParse.ways[objId]
-			tags = w[1]
-			isArea = False
-			closeWaysAreAreas = True
-
-			ofInterest = False
-			if 'waterway' in tags:
-				ofInterest = True
-
-			if 'water' in tags:
-				ofInterest = True
-
-			if 'natural' in tags:
-				naturalValue = tags['natural']
-				if naturalValue == "coastline":
-					ofInterest = True
-
-			if not ofInterest:
-				continue
-
-			wayInRoi = False
-			wayNodes = []
-			firstNode = w[2][0][1]
-			lastNode = w[2][-1][1]
-
-			if closeWaysAreAreas and int(firstNode['ref']) == int(lastNode['ref']):
-				isArea = True
-
-			if 'area' in tags:
-				areaValue = tags['area']
-				if areaValue in ["yes", "1"]:
-					isArea = True
-				if areaValue in ["no", "0"]:
-					isArea = False
-
-			for ntag, nid in w[2]:
-				nidInt = int(nid['ref'])
-				if nidInt not in self.osmParse.nodes:
-					wayNodes.append((nidInt, None, None, None))
-					continue
-				nodeObj = self.osmParse.nodes[nidInt]	
-				nodeAttrs = nodeObj[0]
-				nodeTags = nodeObj[1]
-				nodeLat = float(nodeAttrs['lat'])
-				nodeLon = float(nodeAttrs['lon'])
-	
-				wayNodes.append((nidInt, (nodeLat, nodeLon), nodeAttrs, nodeTags))
-
-				if wayInRoi is False and bounds is not None and \
-					nodeLat >= bounds[1] and nodeLat < bounds[3] and \
-					nodeLon >= bounds[0] and nodeLon < bounds[2]: 
-				
-					wayInRoi = True	
-			
-			#print objId, tags, w[2], wayNodes
-
-			if wayInRoi or bounds is None:
-				if isArea:
-					wayLines.append(('poly', objId, tags, wayNodes[:-1]))
-				else:
-					wayLines.append(('line', objId, tags, wayNodes))
-		return wayLines
+		osmObjToLinesAndPolys = OsmObjToLinesAndPolys()
+		osmObjToLinesAndPolys.AddTagOfInterest('waterway',"*")
+		osmObjToLinesAndPolys.AddTagOfInterest('water',"*")
+		osmObjToLinesAndPolys.AddTagOfInterest('natural',"coastline")
+		shapes = osmObjToLinesAndPolys.Do(self.osmParse, bounds)
+		return shapes
 
 	def GetLandscape(self, bounds=None, hints={}):
 		pass
