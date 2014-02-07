@@ -47,7 +47,6 @@ class TileView(StencilView):
 		self.objs = []
 		self.tileNum = (None, None)
 		self.tileZoom = None
-		self.clearcolor = (1, 0, 0, 1)
 
 		with self.canvas:
 			#Color(1., 1., 0)
@@ -87,13 +86,23 @@ class TileView(StencilView):
 
 	def Draw(self, hints={}):
 
+		#Clear widget drawing
 		self.clear_widgets()
-		if self.map is not None:
-			tl = slippy.num2deg(self.tileNum[0], self.tileNum[1], self.tileZoom)
-			br = slippy.num2deg(self.tileNum[0]+1, self.tileNum[1]+1, self.tileZoom)
-			proj = slippy.TileProj(self.tileNum[0], self.tileNum[1], self.tileZoom, self.size[0], self.size[1])
-			self.map.Draw((tl[1], br[0], br[1], tl[0]), self.tileZoom, hints, self.DrawCallback, proj.Proj)
-			#bounds left,bottom,right,top
+
+		if self.map is None:
+			return
+
+		#Draw background
+		Color(253./255., 251./255., 224./255.)
+		bg = Rectangle(pos=(0., 0), size=(self.width, self.height))
+		self.DrawCallback(bg)
+
+		#Draw foreground
+		tl = slippy.num2deg(self.tileNum[0], self.tileNum[1], self.tileZoom)
+		br = slippy.num2deg(self.tileNum[0]+1, self.tileNum[1]+1, self.tileZoom)
+		proj = slippy.TileProj(self.tileNum[0], self.tileNum[1], self.tileZoom, self.size[0], self.size[1])
+		self.map.Draw((tl[1], br[0], br[1], tl[0]), self.tileZoom, hints, self.DrawCallback, proj.Proj)
+		#bounds left,bottom,right,top
 
 	def DrawCallback(self, obj):
 		self.objs.append(obj)
