@@ -113,19 +113,83 @@ class OsmFile(object):
 				wayLines.append(('line', objId, tags, wayNodes))
 		return wayLines
 
-	def GetRailNetwork(self):
+	def GetRailNetwork(self, bounds=None, hints={}):
 		pass
 
-	def GetWater(self):
+	def GetWater(self, bounds=None, hints={}):
+
+		wayLines = []
+		for objId in self.osmParse.ways:
+			w = self.osmParse.ways[objId]
+			tags = w[1]
+			isArea = False
+			closeWaysAreAreas = True
+
+			ofInterest = False
+			if 'waterway' in tags:
+				ofInterest = True
+
+			if 'water' in tags:
+				ofInterest = True
+
+			if 'natural' in tags:
+				naturalValue = tags['natural']
+				if naturalValue == "coastline":
+					ofInterest = True
+
+			if not ofInterest:
+				continue
+
+			wayInRoi = False
+			wayNodes = []
+			firstNode = w[2][0][1]
+			lastNode = w[2][-1][1]
+
+			if closeWaysAreAreas and int(firstNode['ref']) == int(lastNode['ref']):
+				isArea = True
+
+			if 'area' in tags:
+				areaValue = tags['area']
+				if areaValue in ["yes", "1"]:
+					isArea = True
+				if areaValue in ["no", "0"]:
+					isArea = False
+
+			for ntag, nid in w[2]:
+				nidInt = int(nid['ref'])
+				if nidInt not in self.osmParse.nodes:
+					wayNodes.append((nidInt, None, None, None))
+					continue
+				nodeObj = self.osmParse.nodes[nidInt]	
+				nodeAttrs = nodeObj[0]
+				nodeTags = nodeObj[1]
+				nodeLat = float(nodeAttrs['lat'])
+				nodeLon = float(nodeAttrs['lon'])
+	
+				wayNodes.append((nidInt, (nodeLat, nodeLon), nodeAttrs, nodeTags))
+
+				if wayInRoi is False and bounds is not None and \
+					nodeLat >= bounds[1] and nodeLat < bounds[3] and \
+					nodeLon >= bounds[0] and nodeLon < bounds[2]: 
+				
+					wayInRoi = True	
+			
+			#print objId, tags, w[2], wayNodes
+
+			if wayInRoi or bounds is None:
+				if isArea:
+					wayLines.append(('poly', objId, tags, wayNodes[:-1]))
+				else:
+					wayLines.append(('line', objId, tags, wayNodes))
+		return wayLines
+
+	def GetLandscape(self, bounds=None, hints={}):
 		pass
 
-	def GetLandscape(self):
+	def GetContours(self, bounds=None, hints={}):
 		pass
 
-	def GetContours(self):
-		pass
-
-	def GetInfrastructure(self):
+	def GetInfrastructure(self, bounds=None, hints={}):
 		pass
 
 

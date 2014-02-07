@@ -3,7 +3,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.relativelayout import RelativeLayout
 import kivy.metrics as metrics
 from kivy.clock import Clock
-import tile, slippy, osmfile, map, maphighways
+import tile, slippy, osmfile, map, maphighways, mapwater
 
 class MapLayer(RelativeLayout):
 	def __init__(self, **args):
@@ -14,10 +14,17 @@ class MapLayer(RelativeLayout):
 		self.viewZoom = 12
 		self.tileSize = metrics.dp(512)
 		self.map = map.Map()
+
 		source = osmfile.OsmFile("IsleOfWight-Fosm-Oct2013.osm.bz2")
+
 		highways = maphighways.MapHighways()
 		highways.SetSource(source)
 		self.map.AddPlugin(highways)
+
+		water = mapwater.MapWater()
+		water.SetSource(source)
+		self.map.AddPlugin(water)
+
 		Clock.schedule_interval(self.LateRendering, 0.1)
 
 		self.bind(pos=self.update_graphics_pos,
