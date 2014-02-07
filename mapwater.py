@@ -74,7 +74,7 @@ class MapWater(object):
 				continue
 
 			for primaryKey, primaryType, obj in typeDict[drawType]:
-
+				shapeType = obj[0]
 				objId = obj[1]
 				tags = obj[2]
 				wayNodes = obj[3]
@@ -97,7 +97,9 @@ class MapWater(object):
 			
 				col = Color(r, g, b)
 				DrawCallback(col)
-				self.DrawLine(wayNodes, width, DrawCallback, Proj)
+
+				if shapeType == "line":
+					self.DrawLine(wayNodes, width, DrawCallback, Proj)
 
 		return []
 

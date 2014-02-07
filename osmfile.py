@@ -3,6 +3,38 @@ import bz2, os
 import xml.parsers.expat as expat
 from xml.sax.saxutils import escape, quoteattr
 
+def GetNodesFromWay(nodeIdList, osmParseObj):
+	wayNodes = []
+
+	for ntag, nid in nodeIdList:
+		nidInt = int(nid['ref'])
+		if nidInt not in osmParseObj.nodes:
+			wayNodes.append((nidInt, None, None, None))
+			continue
+
+		nodeObj = osmParseObj.nodes[nidInt]	
+		nodeAttrs = nodeObj[0]
+		nodeTags = nodeObj[1]
+		nodeLat = float(nodeAttrs['lat'])
+		nodeLon = float(nodeAttrs['lon'])
+	
+		wayNodes.append((nidInt, (nodeLat, nodeLon), nodeAttrs, nodeTags))
+
+	return wayNodes
+
+def WayNodesInRoi(wayNodes, bounds):
+	wayInRoi = False
+	for node in wayNodes:
+		if node[1] is None:
+			continue
+
+		if wayInRoi is False and bounds is not None and \
+			node[1][0] >= bounds[1] and node[1][0] < bounds[3] and \
+			node[1][1] >= bounds[0] and node[1][1] < bounds[2]: 
+				
+			wayInRoi = True	
+	return wayInRoi
+
 class OsmObjToLinesAndPolys(object):
 	def __init__(self):
 		self.tagsOfInterest = {}
@@ -33,8 +65,6 @@ class OsmObjToLinesAndPolys(object):
 			if not ofInterest:
 				continue
 
-			wayInRoi = False
-			wayNodes = []
 			firstNode = w[2][0][1]
 			lastNode = w[2][-1][1]
 
@@ -48,24 +78,9 @@ class OsmObjToLinesAndPolys(object):
 				if areaValue.lower() in ["no", "0"]:
 					isArea = False
 
-			for ntag, nid in w[2]:
-				nidInt = int(nid['ref'])
-				if nidInt not in osmParseObj.nodes:
-					wayNodes.append((nidInt, None, None, None))
-					continue
-				nodeObj = osmParseObj.nodes[nidInt]	
-				nodeAttrs = nodeObj[0]
-				nodeTags = nodeObj[1]
-				nodeLat = float(nodeAttrs['lat'])
-				nodeLon = float(nodeAttrs['lon'])
-	
-				wayNodes.append((nidInt, (nodeLat, nodeLon), nodeAttrs, nodeTags))
+			wayNodes = GetNodesFromWay(w[2], osmParseObj)
 
-				if wayInRoi is False and bounds is not None and \
-					nodeLat >= bounds[1] and nodeLat < bounds[3] and \
-					nodeLon >= bounds[0] and nodeLon < bounds[2]: 
-				
-					wayInRoi = True	
+			wayInRoi = WayNodesInRoi(wayNodes, bounds)
 			
 			#print objId, tags, w[2], wayNodes
 
@@ -74,9 +89,39 @@ class OsmObjToLinesAndPolys(object):
 					wayLines.append(('poly', objId, tags, wayNodes[:-1]))
 				else:
 					wayLines.append(('line', objId, tags, wayNodes))
+
+		#Convert multipolygons in relations
+		for objId in osmParseObj.relations:
+			w = osmParseObj.relations[objId]
+			tags = w[1]
+			innerWays = []
+			outerWays = []
+
+			if 'type' in tags:
+				if  tags['type'] != "multipolygon":
+					continue
+			else:
+				continue
+			
+			for mem, memData in w[2]:
+				role = None
+				multiPolyInRoi = False
+				if "role" in memData:
+					role = memData['role']
+				wayLi = GetNodesFromWay(w[2], osmParseObj)
+				if role == "inner":
+					innerWays.append(wayLi)
+				if role == "outer":
+					outerWays.append(wayLi)
+
+				checkWayInRoi = WayNodesInRoi(wayNodes, bounds)
+				if checkWayInRoi:
+					multiPolyInRoi = True
+
+			if multiPolyInRoi:
+				wayLines.append(('multipoly', objId, tags, (outerWays, innerWays)))
+
 		return wayLines
-
-
 
 class OsmParse(object):
 	def __init__(self):
