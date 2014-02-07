@@ -49,11 +49,11 @@ class TileView(StencilView):
 		self.tileZoom = None
 
 		with self.canvas:
-			Color(1., 1., 0)
-			self.objs.append(Rectangle(pos=(0., 0), size=(self.width, self.height)))
-			Color(0, 0.7, 0)
-			self.objs.append(Ellipse(pos=(0., 0), size=self.size))
-			Color(0, 0, 0.4)
+			#Color(1., 1., 0)
+			#self.objs.append(Rectangle(pos=(0., 0), size=(self.width, self.height)))
+			#Color(0, 0.7, 0)
+			#self.objs.append(Ellipse(pos=(0., 0), size=self.size))
+			#Color(0, 0, 0.4)
 			self.label = Label(pos=(0., 0), text="test")
 			self.objs.append(self.label)
 
