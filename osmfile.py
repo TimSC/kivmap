@@ -214,7 +214,10 @@ class OsmFile(object):
 		return shapes
 
 	def GetLandscape(self, bounds=None, hints={}):
-		pass
+		osmObjToLinesAndPolys = OsmObjToLinesAndPolys()
+		osmObjToLinesAndPolys.AddTagOfInterest('landuse',"*")
+		shapes = osmObjToLinesAndPolys.Do(self.osmParse, bounds)
+		return shapes
 
 	def GetContours(self, bounds=None, hints={}):
 		pass
