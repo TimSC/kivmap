@@ -1,7 +1,8 @@
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
-from kivy.graphics import Color, Ellipse, Line, Rectangle, Mesh
+from kivy.graphics import Color, Ellipse, Line, Rectangle, Mesh, Triangle
+from pyshull.earclipping import EarClipping
 
 class MapWater(object):
 	def __init__(self):
@@ -10,7 +11,7 @@ class MapWater(object):
 		self.drawOrder = ['coastline', 'water', 'river', 'stream', 'canal']
 
 		self.styles = {'coastline': {'col': 0x0000d0, 'width': 2},
-			'water': {'col': 0x0000d0},
+			'water': {'col': 0x000000},
 			}
 
 	def StartDrawing(self, bounds, zoom, hints):
@@ -33,26 +34,38 @@ class MapWater(object):
 
 	def DrawPoly(self, obj, width, DrawCallback, Proj):
 
+
 		vertices = []
 		for node in obj:
 			nodePos = node[1]
 			if nodePos is None: continue #Missing node
 			x, y = Proj(*nodePos)
 			#print nodePos, x, y
-			vertices.append(x)
-			vertices.append(y)
-			vertices.append(0.)#u
-			vertices.append(0.)#v
+			vertices.append((x, y))
+			#vertices.append(0.)#u
+			#vertices.append(0.)#v
 
-		for i in range(0, len(vertices), 4):
-			print "v", vertices[i:i+4]
+		
+		#print vertices
+		#print obj
+		vertices2, triangles = EarClipping(vertices, [])
+	
+		#print triangles
 
-		poly = Mesh(vertices=vertices,
-	        indices=range(len(vertices)),
-	        mode='triangle_fan')
-		DrawCallback(poly)
+		for tri in triangles:
+			triPos = []
+			for p in tri:
+				triPos.extend(list(vertices2[p]))
+			poly = Triangle(points = triPos)
+			DrawCallback(poly)
 
-	def DrawMultiPolygon(self, obj, width, DrawCallback, Proj):
+		#for i in range(0, len(vertices), 2):
+		#	print "v", vertices[i]
+
+		#poly = Mesh(vertices, triangles)
+		#DrawCallback(poly)
+
+	def DrawMultiPoly(self, obj, width, DrawCallback, Proj):
 		pass
 
 
