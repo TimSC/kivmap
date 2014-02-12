@@ -8,6 +8,31 @@ def GetNodesFromWay(nodeIdList, osmParseObj):
 
 	for ntag, nid in nodeIdList:
 		nidInt = int(nid['ref'])
+
+		if nidInt not in osmParseObj.nodes:
+			wayNodes.append((nidInt, None, None, None))
+			continue
+
+		nodeObj = osmParseObj.nodes[nidInt]	
+		nodeAttrs = nodeObj[0]
+		nodeTags = nodeObj[1]
+		nodeLat = float(nodeAttrs['lat'])
+		nodeLon = float(nodeAttrs['lon'])
+	
+		wayNodes.append((nidInt, (nodeLat, nodeLon), nodeAttrs, nodeTags))
+
+	return wayNodes
+
+def GetNodesFromWayId(wayId, osmParseObj):
+	wayNodes = []
+
+	if wayId not in osmParseObj.ways:
+		return None
+	way = osmParseObj.ways[wayId]
+
+	for ntag, nid in way[2]:
+		nidInt = int(nid['ref'])
+
 		if nidInt not in osmParseObj.nodes:
 			wayNodes.append((nidInt, None, None, None))
 			continue
@@ -96,6 +121,7 @@ class OsmObjToLinesAndPolys(object):
 			tags = w[1]
 			innerWays = []
 			outerWays = []
+			checkWayInRoi = False
 
 			if 'type' in tags:
 				if  tags['type'] != "multipolygon":
@@ -103,23 +129,45 @@ class OsmObjToLinesAndPolys(object):
 			else:
 				continue
 			
+			innerWayMembers = []
+			outerWayMembers = []
+
 			for mem, memData in w[2]:
 				role = None
-				multiPolyInRoi = False
 				if "role" in memData:
 					role = memData['role']
-				wayLi = GetNodesFromWay(w[2], osmParseObj)
+
 				if role == "inner":
-					innerWays.append(wayLi)
+					innerWayMembers.append((mem, memData))
 				if role == "outer":
-					outerWays.append(wayLi)
+					outerWayMembers.append((mem, memData))
 
-				checkWayInRoi = WayNodesInRoi(wayNodes, bounds)
-				if checkWayInRoi:
-					multiPolyInRoi = True
+			for mem, memData in outerWayMembers:
+				wayId = int(memData['ref'])
+				wayShape = GetNodesFromWayId(wayId, osmParseObj)
+				wayInRoi = WayNodesInRoi(wayShape, bounds)
+				if wayInRoi:
+					checkWayInRoi = True
+				outerWays.append(wayShape)
 
-			if multiPolyInRoi:
-				wayLines.append(('multipoly', objId, tags, (outerWays, innerWays)))
+			#print "tags", tags
+			#print "inner", innerWays
+			#print "outer", outerWays
+
+			if checkWayInRoi is False:
+				continue
+
+			#If there are multiple outer ways, sort into separate multipolygons
+			if len(outerWays) > 1:
+				print "Multiple outer polygons not implemented"
+				continue
+
+			if len(outerWays) == 0: #Ignore shape if no outer way exists
+				continue
+
+			if len(outerWays) == 1:
+				#Simple case of one outer way
+				wayLines.append(('multipoly', objId, tags, ([outerWays[0][:-1], []])))
 
 		return wayLines
 

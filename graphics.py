@@ -32,12 +32,51 @@ def DrawPoly(obj, width, DrawCallback, Proj):
 	#print triangles
 
 	for tri in triangles:
+		for ptNum in tri:
+			if ptNum < 0 or ptNum >= len(vertices2):
+				raise Exception("Out of bounds vertex index")
+
+	for tri in triangles:
 		triPos = []
 		for p in tri:
 			triPos.extend(list(vertices2[p]))
+
 		poly = Triangle(points = triPos)
 		DrawCallback(poly)
 
 def DrawMultiPoly(obj, width, DrawCallback, Proj):
-	print obj[1]
+
+	vertices = []
+	outerWay = obj[0]
+	innerWays = obj[1]
+	for node in outerWay:
+		nodePos = node[1]
+		if nodePos is None: continue #Missing node
+		x, y = Proj(*nodePos)
+		vertices.append((x, y))
+
+	if len(vertices) == 0:
+		return
+
+	try:
+		vertices2, triangles = EarClipping(vertices, [])
+	except Exception as err:
+		print err
+		return
+	
+	for tri in triangles:
+		for ptNum in tri:
+			if ptNum < 0 or ptNum >= len(vertices2):
+				raise Exception("Out of bounds vertex index")
+
+	#print triangles
+
+	for tri in triangles:
+		triPos = []
+		for p in tri:
+			triPos.extend(list(vertices2[p]))
+		#print triPos
+
+		poly = Triangle(points = triPos)
+		DrawCallback(poly)
 

@@ -74,6 +74,8 @@ class MapLandscape(object):
 				objId = obj[1]
 				tags = obj[2]
 				wayNodes = obj[3]
+				#if shapeType == "multipoly":
+				#	print wayNodes
 
 				renderStyle = {}
 				if primaryType in self.styles:
