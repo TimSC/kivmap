@@ -1,0 +1,3 @@
+[submodule "pyshull"]
+	path = pyshull
+	url = https://github.com/TimSC/pyshull.git
