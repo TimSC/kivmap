@@ -25,11 +25,11 @@ class MapWater(object):
 		tileLonWidth = bounds[2] - bounds[0]
 		tileLonHeight = bounds[3] - bounds[1]
 
-		print "draw layer", layer
-		print "bounds", bounds
+		#print "draw layer", layer
+		#print "bounds", bounds
 
 		water = self.source.GetWater(bounds, hints)
-		print "len water", len(water)	
+		#print "len water", len(water)	
 
 		typeDict = {}
 		for obj in water:
@@ -55,7 +55,7 @@ class MapWater(object):
 
 			typeDict[primaryType].append((primaryKey, primaryType, obj))
 			
-		print typeDict.keys()
+		#print typeDict.keys()
 
 		for drawType in self.drawOrder[::-1]:
 			if drawType not in typeDict:

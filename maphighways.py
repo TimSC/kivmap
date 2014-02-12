@@ -2,6 +2,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.graphics import Color, Ellipse, Line, Rectangle
+import graphics
 
 class MapHighways(object):
 	def __init__(self):
@@ -42,20 +43,6 @@ class MapHighways(object):
 		#bounds left,bottom,right,top
 		return [5]
 
-	def DrawLine(self, obj, width, DrawCallback, Proj):
-
-		xyPairs = []
-		for node in obj:
-			nodePos = node[1]
-			if nodePos is None: continue #Missing node
-			x, y = Proj(*nodePos)
-			#print nodePos, x, y
-			xyPairs.append(x)
-			xyPairs.append(y)
-
-		li = Line(points=xyPairs, width=width)
-		DrawCallback(li)
-
 	def DrawProcessing(self, bounds, zoom, hints, layer, DrawCallback, Proj):
 		#bounds left,bottom,right,top
 		if self.source is None: return
@@ -63,11 +50,11 @@ class MapHighways(object):
 		tileLonWidth = bounds[2] - bounds[0]
 		tileLonHeight = bounds[3] - bounds[1]
 
-		print "draw layer", layer
-		print "bounds", bounds
+		#print "draw layer", layer
+		#print "bounds", bounds
 
 		highwayNetwork = self.source.GetHighwayNetwork(bounds, hints)
-		print "len highwayNetwork", len(highwayNetwork)	
+		#print "len highwayNetwork", len(highwayNetwork)	
 
 		highwayTypeDict = {}
 		for obj in highwayNetwork:
@@ -81,7 +68,7 @@ class MapHighways(object):
 				highwayTypeDict[tags['highway']] = []
 			highwayTypeDict[tags['highway']].append(obj)
 			
-		print highwayTypeDict.keys()
+		#print highwayTypeDict.keys()
 
 		for highwayType in self.highwayDrawOrder[::-1]:
 			if highwayType not in highwayTypeDict:
@@ -112,7 +99,7 @@ class MapHighways(object):
 			
 				col = Color(r, g, b)
 				DrawCallback(col)
-				self.DrawLine(wayNodes, width, DrawCallback, Proj)
+				graphics.DrawLine(wayNodes, width, DrawCallback, Proj)
 
 		return []
 
