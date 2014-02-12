@@ -2,7 +2,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.graphics import Color, Ellipse, Line, Rectangle, Mesh, Triangle
-from pyshull.earclipping import EarClipping
+import graphics
 
 class MapWater(object):
 	def __init__(self):
@@ -17,60 +17,6 @@ class MapWater(object):
 	def StartDrawing(self, bounds, zoom, hints):
 		#bounds left,bottom,right,top
 		return [0]
-
-	def DrawLine(self, obj, width, DrawCallback, Proj):
-
-		xyPairs = []
-		for node in obj:
-			nodePos = node[1]
-			if nodePos is None: continue #Missing node
-			x, y = Proj(*nodePos)
-			#print nodePos, x, y
-			xyPairs.append(x)
-			xyPairs.append(y)
-
-		li = Line(points=xyPairs, width=width)
-		DrawCallback(li)
-
-	def DrawPoly(self, obj, width, DrawCallback, Proj):
-
-
-		vertices = []
-		for node in obj:
-			nodePos = node[1]
-			if nodePos is None: continue #Missing node
-			x, y = Proj(*nodePos)
-			#print nodePos, x, y
-			vertices.append((x, y))
-			#vertices.append(0.)#u
-			#vertices.append(0.)#v
-
-		
-		#print vertices
-		#print obj
-		vertices2, triangles = EarClipping(vertices, [])
-	
-		#print triangles
-
-		for tri in triangles:
-			triPos = []
-			for p in tri:
-				triPos.extend(list(vertices2[p]))
-			poly = Triangle(points = triPos)
-			DrawCallback(poly)
-
-		#for i in range(0, len(vertices), 2):
-		#	print "v", vertices[i]
-
-		#poly = Mesh(vertices, triangles)
-		#DrawCallback(poly)
-
-	def DrawMultiPoly(self, obj, width, DrawCallback, Proj):
-		pass
-
-
-
-
 
 	def DrawProcessing(self, bounds, zoom, hints, layer, DrawCallback, Proj):
 		#bounds left,bottom,right,top
@@ -141,11 +87,11 @@ class MapWater(object):
 				DrawCallback(col)
 
 				if shapeType == "line":
-					self.DrawLine(wayNodes, width, DrawCallback, Proj)
+					graphics.DrawLine(wayNodes, width, DrawCallback, Proj)
 				if shapeType == "poly":
-					self.DrawPoly(wayNodes, width, DrawCallback, Proj)
+					graphics.DrawPoly(wayNodes, width, DrawCallback, Proj)
 				if shapeType == "multipoly":
-					self.DrawMultiPoly(wayNodes, width, DrawCallback, Proj)
+					graphics.DrawMultiPoly(wayNodes, width, DrawCallback, Proj)
 
 		return []
 
