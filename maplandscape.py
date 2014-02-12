@@ -8,7 +8,7 @@ class MapLandscape(object):
 	def __init__(self):
 		self.source = None
 
-		self.drawOrder = ['residential', 'retail', 'residential', 'recreation_ground',
+		self.drawOrder = ['residential', 'retail', 'residential', 'recreation_ground', 'industrial',
 			'greenfield', 'cemetery', 'brownfield', 'allotments', 'landfill', 'forest', 'construction']
 
 		self.styles = {'residential': {'fillcol': 0xefefef}, 
@@ -20,6 +20,7 @@ class MapLandscape(object):
 			'cemetery': {'fillcol': 0xf1ffd7}, 
 			'allotments': {'fillcol': 0xf1ffd7}, 
 			'landfill': {'fillcol': 0xfffee5}, 
+			'industrial': {'fillcol': 0xfffee5}, 
 			'forest': {'fillcol': 0xefefef}, 
 			'construction': {'fillcol': 0xfffee5},
 			}
@@ -62,7 +63,7 @@ class MapLandscape(object):
 
 			typeDict[primaryType].append((primaryKey, primaryType, obj))
 			
-		print typeDict.keys()
+		#print typeDict.keys()
 
 		for drawType in self.drawOrder[::-1]:
 			if drawType not in typeDict:
