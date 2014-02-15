@@ -167,7 +167,13 @@ class OsmObjToLinesAndPolys(object):
 
 			if len(outerWays) == 1:
 				#Simple case of one outer way
-				wayLines.append(('multipoly', objId, tags, ([outerWays[0][:-1], []])))
+				firstNodeId = outerWays[0][0][0]
+				lastNodeId = outerWays[0][-1][0]
+				if firstNodeId == lastNodeId:
+					wayLines.append(('multipoly', objId, tags, ([outerWays[0][:-1], []])))
+				else:
+					print "Warning: unclosed way in outer multipolygon"
+					wayLines.append(('multipoly', objId, tags, ([outerWays[0], []])))
 
 		return wayLines
 
