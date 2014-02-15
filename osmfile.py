@@ -150,6 +150,8 @@ class OsmObjToLinesAndPolys(object):
 				if wayInRoi:
 					checkWayInRoi = True
 
+				if len(wayShape) == 0:
+					continue #Ignore ways when empty or all nodes are missing
 				firstNodeId = wayShape[0][0]
 				lastNodeId = wayShape[-1][0]
 				if firstNodeId != lastNodeId:
@@ -166,6 +168,8 @@ class OsmObjToLinesAndPolys(object):
 				if wayInRoi:
 					checkWayInRoi = True
 
+				if len(wayShape) == 0:
+					continue #Ignore ways when empty or all nodes are missing
 				firstNodeId = wayShape[0][0]
 				lastNodeId = wayShape[-1][0]
 				if firstNodeId != lastNodeId:
