@@ -1,5 +1,41 @@
 from pyshull import earclipping
 
+def PointInSideTriangle(pt, tri, winding):
+	for side in range(3):
+		sideStart = tri[side]
+		sideEnd = tri[(side+1)%3]
+		sideVec = (sideEnd[0] - sideStart[0], sideEnd[1] - sideStart[1])
+		ptVec = (pt[0] - sideStart[0], pt[1] - sideStart[1])
+
+		crossProd = (sideVec[0]*ptVec[1] - ptVec[0]*sideVec[1])
+
+		if winding > 0. and crossProd < 0.: return False
+		if winding < 0. and crossProd > 0.: return False
+
+	return True
+
+def GetWindingDirection(tri2):
+	sideVec1 = (tri2[1][0] - tri2[0][0], tri2[1][1] - tri2[0][1])
+	sideVec2 = (tri2[2][0] - tri2[1][0], tri2[2][1] - tri2[1][1])
+	crossProd = (sideVec1[0]*sideVec2[1] - sideVec2[0]*sideVec1[1])
+	if crossProd != 0.: return crossProd #Zero is ambiguous
+
+	sideVec1 = (tri2[2][0] - tri2[1][0], tri2[2][1] - tri2[1][1])
+	sideVec2 = (tri2[0][0] - tri2[2][0], tri2[0][1] - tri2[2][1])
+	crossProd = (sideVec1[0]*sideVec2[1] - sideVec2[0]*sideVec1[1])
+	return crossProd
+
+def CheckFirstTriangleIsContained(tri1, tri2):
+	crossProd = GetWindingDirection(tri2)
+	#print "winding", crossProd
+	
+	r1 = PointInSideTriangle(tri1[0], tri2, crossProd > 0.)
+	if r1 is False: return False
+	r2 = PointInSideTriangle(tri1[1], tri2, crossProd > 0.)
+	if r2 is False: return False
+	r3 = PointInSideTriangle(tri1[2], tri2, crossProd > 0.)
+	return r3
+
 def DoTrianglesCollide(tri1, tri2):
 	#Do bounding box check
 
@@ -10,13 +46,18 @@ def DoTrianglesCollide(tri1, tri2):
 			if crossing: return True
 
 	#Check for entirely contained triangle
+	contained = CheckFirstTriangleIsContained(tri1, tri2)
+	if contained: return True
+
+	contained = CheckFirstTriangleIsContained(tri2, tri1)
+	if contained: return True
 
 	return False
 
 
 def CheckResult(expected, actual, description):
 	if expected == actual:
-		print "Test OK"
+		print "Test OK", description
 	else:
 		print "Test Failed:", description
 	return expected == actual
@@ -68,7 +109,7 @@ if __name__ == "__main__":
 		True, "Common point, no crossing")
 
 	#Contained triangle
-	RunTriangleTestBattery(((0.,0.),(10.,0.),(5.,10.)),((4.,1.),(6.,1.),(5.,1.)),
+	RunTriangleTestBattery(((0.,0.),(10.,0.),(5.,10.)),((4.,1.),(6.,1.),(5.,2.)),
 		True, "Contained triangle")
 
 
