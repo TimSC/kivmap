@@ -29,11 +29,11 @@ def CheckFirstTriangleIsContained(tri1, tri2):
 	crossProd = GetWindingDirection(tri2)
 	#print "winding", crossProd
 	
-	r1 = PointInSideTriangle(tri1[0], tri2, crossProd > 0.)
+	r1 = PointInSideTriangle(tri1[0], tri2, crossProd)
 	if r1 is False: return False
-	r2 = PointInSideTriangle(tri1[1], tri2, crossProd > 0.)
+	r2 = PointInSideTriangle(tri1[1], tri2, crossProd)
 	if r2 is False: return False
-	r3 = PointInSideTriangle(tri1[2], tri2, crossProd > 0.)
+	r3 = PointInSideTriangle(tri1[2], tri2, crossProd)
 	return r3
 
 def DoTrianglesCollide(tri1, tri2):
@@ -47,9 +47,11 @@ def DoTrianglesCollide(tri1, tri2):
 
 	#Check for entirely contained triangle
 	contained = CheckFirstTriangleIsContained(tri1, tri2)
+	#print "contained1", contained
 	if contained: return True
 
 	contained = CheckFirstTriangleIsContained(tri2, tri1)
+	#print "contained2", contained
 	if contained: return True
 
 	return False
