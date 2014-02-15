@@ -60,6 +60,81 @@ def WayNodesInRoi(wayNodes, bounds):
 			wayInRoi = True	
 	return wayInRoi
 
+def MergeWayFragments(wayData):
+	#print "MergeWayFragments", len(wayData)
+	i = 0
+	wayData = wayData[:] #Get copy for modification
+
+	while i < len(wayData):
+		way, closed = wayData[i]
+
+		if closed:
+			i+=1
+			continue
+
+		firstNodeId = way[0][0]
+		lastNodeId = way[-1][0]
+		j = 0
+
+		while j < len(wayData):
+			if i >= j: 
+				j+=1
+				continue #Don't merge with self
+			way2, closed2 = wayData[j]
+
+			if closed2:
+				j+=1
+				continue
+
+			chkFirstNodeId = way2[0][0]
+			chkLastNodeId = way2[-1][0]
+			
+			if firstNodeId == chkFirstNodeId:
+				#print "Merging1"
+				combinedWay = way2[:1:-1]
+				combinedWay.extend(way[:])
+				closed = chkLastNodeId == lastNodeId
+				wayData[i] = (combinedWay, closed)
+				del wayData[j]
+				j = 0
+				continue
+
+			if firstNodeId == chkLastNodeId:
+				#print "Merging2"
+				combinedWay = way2[:]
+				combinedWay.extend(way[1:])
+				closed = chkFirstNodeId == lastNodeId
+				wayData[i] = (combinedWay, closed)
+				del wayData[j]
+				j = 0
+				continue
+
+			if lastNodeId == chkFirstNodeId:
+				#print "Merging3"
+				combinedWay = way[:]
+				combinedWay.extend(way2[1:])
+				closed = chkLastNodeId == firstNodeId
+				wayData[i] = (combinedWay, closed)
+				del wayData[j]
+				j = 0
+				continue
+
+			if lastNodeId == chkLastNodeId:
+				#print "Merging4"
+				combinedWay = way[:]
+				combinedWay.extend(way2[:1:-1])
+				closed = chkFirstNodeId == firstNodeId
+				wayData[i] = (combinedWay, closed)
+				del wayData[j]
+				j = 0
+				continue
+
+			j += 1
+
+		i += 1
+
+	return wayData
+
 class OsmObjToLinesAndPolys(object):
 	def __init__(self):
 		self.tagsOfInterest = {}
@@ -115,7 +190,7 @@ class OsmObjToLinesAndPolys(object):
 				else:
 					wayLines.append(('line', objId, tags, wayNodes))
 
-		#Convert multipolygons in relations
+		#Convert relations to multipolygons
 		for objId in osmParseObj.relations:
 			w = osmParseObj.relations[objId]
 			tags = w[1]
@@ -155,10 +230,12 @@ class OsmObjToLinesAndPolys(object):
 				firstNodeId = wayShape[0][0]
 				lastNodeId = wayShape[-1][0]
 				if firstNodeId != lastNodeId:
-					print "Warning: unclosed way in outer multipolygon", wayId
-					outerWays.append(wayShape)
+					outerWays.append((wayShape, 0))
 				else:
-					outerWays.append(wayShape[:-1])
+					outerWays.append((wayShape[:-1], 1))
+
+			if checkWayInRoi is False:
+				continue
 
 			for mem, memData in innerWayMembers:
 				wayId = int(memData['ref'])
@@ -173,17 +250,35 @@ class OsmObjToLinesAndPolys(object):
 				firstNodeId = wayShape[0][0]
 				lastNodeId = wayShape[-1][0]
 				if firstNodeId != lastNodeId:
-					print "Warning: unclosed way in inner multipolygon", wayId
-					innerWays.append(wayShape)
+					innerWays.append((wayShape, 0))
 				else:
-					innerWays.append(wayShape[:-1])
+					innerWays.append((wayShape[:-1], 1))
 
+			#Join unclosed ways to form more complete ways, if possible
+			#for ow, clo in outerWays:
+			#	print "frag", ow[0][0], ow[-1][0]
+			preMergeCount = len(outerWays)
+			outerWays = MergeWayFragments(outerWays)
+			if len(outerWays) != preMergeCount:
+				print "result of merge", len(outerWays), preMergeCount
+			for ow, clo in outerWays:
+				if clo is False:
+					print "Warning: unclosed outer way", ow[0][0], ow[-1][0]
+
+			innerWays = MergeWayFragments(innerWays)
+			for ow, clo in innerWays:
+				if clo is False:
+					print "Warning: unclosed inner way", ow[0][0], ow[-1][0]
+
+	
 			#print "tags", tags
 			#print "inner", innerWays
 			#print "outer", outerWays
 
-			if checkWayInRoi is False:
-				continue
+
+			#if checkWayInRoi is False:
+			#	continue
+
 
 			#If there are multiple outer ways, sort into separate multipolygons
 			if len(outerWays) > 1:
@@ -195,7 +290,10 @@ class OsmObjToLinesAndPolys(object):
 
 			if len(outerWays) == 1:
 				#Simple case of one outer way
-				wayLines.append(('multipoly', objId, tags, ([outerWays[0], innerWays])))
+				outerWayData = [way[0] for way in outerWays]
+				innerWayData = [way[0] for way in innerWays]
+
+				wayLines.append(('multipoly', objId, tags, ([outerWayData[0], innerWayData])))
 
 		return wayLines
 
