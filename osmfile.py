@@ -390,6 +390,7 @@ class OsmFile(object):
 	def GetLandscape(self, bounds=None, hints={}):
 		osmObjToLinesAndPolys = OsmObjToLinesAndPolys()
 		osmObjToLinesAndPolys.AddTagOfInterest('landuse',"*")
+		osmObjToLinesAndPolys.AddTagOfInterest('natural',"wood")
 		shapes = osmObjToLinesAndPolys.Do(self.osmParse, bounds)
 		return shapes
 

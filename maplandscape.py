@@ -9,7 +9,8 @@ class MapLandscape(object):
 		self.source = None
 
 		self.drawOrder = ['residential', 'retail', 'residential', 'recreation_ground', 'industrial',
-			'greenfield', 'cemetery', 'brownfield', 'allotments', 'landfill', 'forest', 'construction']
+			'greenfield', 'cemetery', 'brownfield', 'allotments', 'landfill', 'forest', 'construction'
+			, 'wood']
 
 		self.styles = {'residential': {'fillcol': 0xefefef}, 
 			'retail': {'fillcol': 0xfff1f1}, 
@@ -21,7 +22,8 @@ class MapLandscape(object):
 			'allotments': {'fillcol': 0xf1ffd7}, 
 			'landfill': {'fillcol': 0xfffee5}, 
 			'industrial': {'fillcol': 0xfffee5}, 
-			'forest': {'fillcol': 0xefefef}, 
+			'forest': {'fillcol': 0x5ed74a},
+			'wood': {'fillcol': 0x5ed74a},  
 			'construction': {'fillcol': 0xfffee5},
 			}
 
@@ -55,6 +57,9 @@ class MapLandscape(object):
 			if 'landuse' in tags:
 				primaryKey = 'landuse'
 				primaryType = tags['landuse']
+			if 'natural' in tags:
+				primaryKey = 'natural'
+				primaryType = tags['natural']
 			if primaryType is None:
 				continue
 
