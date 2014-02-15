@@ -38,6 +38,15 @@ def CheckFirstTriangleIsContained(tri1, tri2):
 
 def DoTrianglesCollide(tri1, tri2):
 	#Do bounding box check
+	tri1x = [p[0] for p in tri1]
+	tri2x = [p[0] for p in tri2]
+	overlapx = earclipping.Check1DOverlap(tri1x, tri2x)
+	if not overlapx: return False
+
+	tri1y = [p[1] for p in tri1]
+	tri2y = [p[1] for p in tri2]
+	overlapy = earclipping.Check1DOverlap(tri1y, tri2y)
+	if not overlapy: return False	
 
 	#Check for line overlaps
 	for i in range(3):
