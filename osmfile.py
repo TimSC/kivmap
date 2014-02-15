@@ -145,10 +145,34 @@ class OsmObjToLinesAndPolys(object):
 			for mem, memData in outerWayMembers:
 				wayId = int(memData['ref'])
 				wayShape = GetNodesFromWayId(wayId, osmParseObj)
+				if wayShape is None: continue #Way not found
 				wayInRoi = WayNodesInRoi(wayShape, bounds)
 				if wayInRoi:
 					checkWayInRoi = True
-				outerWays.append(wayShape)
+
+				firstNodeId = wayShape[0][0]
+				lastNodeId = wayShape[-1][0]
+				if firstNodeId != lastNodeId:
+					print "Warning: unclosed way in outer multipolygon", wayId
+					outerWays.append(wayShape)
+				else:
+					outerWays.append(wayShape[:-1])
+
+			for mem, memData in innerWayMembers:
+				wayId = int(memData['ref'])
+				wayShape = GetNodesFromWayId(wayId, osmParseObj)
+				if wayShape is None: continue #Way not found
+				wayInRoi = WayNodesInRoi(wayShape, bounds)
+				if wayInRoi:
+					checkWayInRoi = True
+
+				firstNodeId = wayShape[0][0]
+				lastNodeId = wayShape[-1][0]
+				if firstNodeId != lastNodeId:
+					print "Warning: unclosed way in inner multipolygon", wayId
+					innerWays.append(wayShape)
+				else:
+					innerWays.append(wayShape[:-1])
 
 			#print "tags", tags
 			#print "inner", innerWays
@@ -160,20 +184,14 @@ class OsmObjToLinesAndPolys(object):
 			#If there are multiple outer ways, sort into separate multipolygons
 			if len(outerWays) > 1:
 				print "Multiple outer polygons not implemented"
-				continue
+				#ProcessMultipoly(outerWays, innerWays)
 
 			if len(outerWays) == 0: #Ignore shape if no outer way exists
 				continue
 
 			if len(outerWays) == 1:
 				#Simple case of one outer way
-				firstNodeId = outerWays[0][0][0]
-				lastNodeId = outerWays[0][-1][0]
-				if firstNodeId == lastNodeId:
-					wayLines.append(('multipoly', objId, tags, ([outerWays[0][:-1], []])))
-				else:
-					print "Warning: unclosed way in outer multipolygon"
-					wayLines.append(('multipoly', objId, tags, ([outerWays[0], []])))
+				wayLines.append(('multipoly', objId, tags, ([outerWays[0], innerWays])))
 
 		return wayLines
 

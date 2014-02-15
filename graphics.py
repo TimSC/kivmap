@@ -47,6 +47,7 @@ def DrawPoly(obj, width, DrawCallback, Proj):
 def DrawMultiPoly(obj, width, DrawCallback, Proj):
 
 	vertices = []
+	innerVertices = []
 	outerWay = obj[0]
 	innerWays = obj[1]
 	for node in outerWay:
@@ -55,14 +56,25 @@ def DrawMultiPoly(obj, width, DrawCallback, Proj):
 		x, y = Proj(*nodePos)
 		vertices.append((x, y))
 
+	for innerWay in innerWays:
+		innerWayVertices = []
+		for node in innerWay:
+			nodePos = node[1]
+			if nodePos is None: continue #Missing node
+			x, y = Proj(*nodePos)
+			innerWayVertices.append((x, y))
+		innerVertices.append(innerWayVertices)
+
 	if len(vertices) == 0:
 		return
 
 	try:
-		vertices2, triangles = EarClipping(vertices, [])
+		vertices2, triangles = EarClipping(vertices, innerVertices)
 	except Exception as err:
 		print err
 		return
+
+	#if len(innerVertices) == 0: return
 	
 	for tri in triangles:
 		for ptNum in tri:
