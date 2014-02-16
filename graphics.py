@@ -3,6 +3,9 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.graphics import Color, Ellipse, Line, Rectangle, Mesh, Triangle
 from pyshull.earclipping import EarClipping
+import pickle, random
+
+gKeepProblemPolygons = False
 
 def DrawLine(obj, width, DrawCallback, Proj):
 
@@ -27,8 +30,16 @@ def DrawPoly(obj, width, DrawCallback, Proj):
 		x, y = Proj(*nodePos)
 		vertices.append((x, y))
 
-	vertices2, triangles = EarClipping(vertices, [])
-	
+	try:
+		vertices2, triangles = EarClipping(vertices, [])
+	except Exception as err:
+		print err
+		if gKeepProblemPolygons:
+			randFilename = "polyerr{0}.dat".format(random.randint(0,1000000))
+			pickle.dump((vertices, []), open(randFilename, "wb"))
+			print "Saved err polygon to", randFilename
+		return
+
 	#print triangles
 
 	for tri in triangles:
@@ -72,6 +83,10 @@ def DrawMultiPoly(obj, width, DrawCallback, Proj):
 		vertices2, triangles = EarClipping(vertices, innerVertices)
 	except Exception as err:
 		print err
+		if gKeepProblemPolygons:
+			randFilename = "polyerr{0}.dat".format(random.randint(0,1000000))
+			pickle.dump((vertices, innerVertices), open(randFilename, "wb"))
+			print "Saved err polygon to", randFilename
 		return
 
 	#if len(innerVertices) == 0: return
