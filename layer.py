@@ -12,10 +12,12 @@ class MapLayer(RelativeLayout):
 		self.tiles = {}
 		self.viewPos = (50.7, -1.3)
 		self.viewZoom = 12
-		self.tileSize = metrics.dp(512)
+		self.unscaledTileSize = 512
+		self.tileSize = metrics.dp(self.unscaledTileSize)
 		self.map = map.Map()
 
 		source = osmfile.OsmFile("Simple.osm.gz")
+		#source = osmfile.OsmFile("IsleOfWight-Fosm-Oct2013.osm.gz")
 
 		highways = maphighways.MapHighways()
 		highways.SetSource(source)

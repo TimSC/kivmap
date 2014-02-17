@@ -4,7 +4,7 @@ from kivy.uix.label import Label
 from kivy.uix.scatter import Scatter
 from kivy.graphics import Color, Ellipse, Line, Rectangle
 from kivy.uix.stencilview import StencilView
-import slippy
+import slippy, random
 
 class TileWidget(Scatter):
 	def __init__(self, **args):
@@ -16,7 +16,7 @@ class TileWidget(Scatter):
 		self.bind(pos=self.update_graphics_pos,
 			size=self.update_graphics_size)
 
-		self.tileView = TileView(size=(512, 512))
+		self.tileView = TileView(size=args['size'])
 		self.add_widget(self.tileView)
 		self.drawDone = False
 
@@ -47,10 +47,12 @@ class TileView(StencilView):
 		self.objs = []
 		self.tileNum = (None, None)
 		self.tileZoom = None
+		self.randomBackgroundColour = False
 
 		with self.canvas:
-			#Color(1., 1., 0)
-			#self.objs.append(Rectangle(pos=(0., 0), size=(self.width, self.height)))
+			if self.randomBackgroundColour:
+				Color(random.random(), random.random(), random.random())
+				self.objs.append(Rectangle(pos=(0., 0), size=(self.width, self.height)))
 			#Color(0, 0.7, 0)
 			#self.objs.append(Ellipse(pos=(0., 0), size=self.size))
 			#Color(0, 0, 0.4)
@@ -88,6 +90,10 @@ class TileView(StencilView):
 
 		#Clear widget drawing
 		self.clear_widgets()
+
+		if self.randomBackgroundColour:
+			self.DrawCallback(Color(random.random(), random.random(), random.random()))
+			self.DrawCallback(Rectangle(pos=(0., 0), size=(self.width, self.height)))
 
 		if self.map is None:
 			return
