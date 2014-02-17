@@ -79,15 +79,21 @@ def DrawMultiPoly(obj, width, DrawCallback, Proj):
 	if len(vertices) == 0:
 		return
 
+	#Triangularise shape
 	try:
 		vertices2, triangles = EarClipping(vertices, innerVertices)
 	except Exception as err:
+		#Problems encountered
 		print err
 		if gKeepProblemPolygons:
 			randFilename = "polyerr{0}.dat".format(random.randint(0,1000000))
 			pickle.dump((vertices, innerVertices), open(randFilename, "wb"))
 			print "Saved err polygon to", randFilename
-		return
+		try:
+			#Try to triangularise by ignoring holes
+			vertices2, triangles = EarClipping(vertices, [])
+		except Exception as err:
+			return
 
 	#if len(innerVertices) == 0: return
 	

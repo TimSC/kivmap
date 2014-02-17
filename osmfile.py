@@ -1,7 +1,23 @@
 
-import bz2, os
+import os
 import xml.parsers.expat as expat
 from xml.sax.saxutils import escape, quoteattr
+try:
+	import bz2
+	bz2Available = True
+except:
+	bz2Available = False
+try:
+	import gzip
+	gzipAvailable = True
+except:
+	gzipAvailable = False
+try:
+	import zipfile
+	zipAvailable = True
+except:
+	zipAvailable = False
+
 
 def GetNodesFromWay(nodeIdList, osmParseObj):
 	wayNodes = []
@@ -355,8 +371,13 @@ class OsmFile(object):
 	def __init__(self, fina):
 		fi = None
 		finaSplit = os.path.splitext(fina)
-		if finaSplit[1] == ".bz2":
+		if bz2Available and finaSplit[1] == ".bz2":
 			fi = bz2.BZ2File(fina)
+		if gzipAvailable and finaSplit[1] == ".gz":
+			fi = gzip.GzipFile(fina)
+		if zipAvailable and finaSplit[1] == ".zip":
+			fi = zipfile.ZipFile(fina)
+
 		if finaSplit[1] == ".osm":
 			fi = open(fina, "rt")
 		if fi is None:

@@ -1,0 +1,4 @@
+title=Kivmap
+author=Kinatomic Technology
+orientation=portrait
+
