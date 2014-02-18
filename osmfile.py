@@ -162,13 +162,13 @@ def ProcessMultipoly(outerWays, innerWays):
 	innerWaysTri = []
 
 	for outerWayData in outerWaysData:
-		nodePoss = [p[1] for p in outerWayData]
+		nodePoss = IgnoreNull(ExtractLatLon(outerWayData))
 
 		pts, triangles = EarClipping(nodePoss)
 		outerWaysTri.append((pts, triangles))
 
 	for innerWayData in innerWaysData:
-		nodePoss = [p[1] for p in innerWayData]
+		nodePoss = IgnoreNull(ExtractLatLon(innerWayData))
 
 		pts, triangles = EarClipping(nodePoss)
 		innerWaysTri.append((pts, triangles))
@@ -197,6 +197,15 @@ def ProcessMultipoly(outerWays, innerWays):
 
 	return out
 
+def IgnoreNull(nodes):
+	filteredNodes = []
+	for n in nodes:	
+		if n is not None:
+			filteredNodes.append(n)
+	return filteredNodes
+
+def ExtractLatLon(nodes):
+	return [p[1] for p in nodes]
 
 class OsmObjToLinesAndPolys(object):
 	def __init__(self):
@@ -261,14 +270,10 @@ class OsmObjToLinesAndPolys(object):
 			if wayInRoi or bounds is None:
 				if isArea:
 					nodes = wayNodes[:-1]
-					filteredNodes = []
-					for n in nodes:	
-						if n is not None:
-							filteredNodes.append(n)
+					filteredNodes = IgnoreNull(ExtractLatLon(nodes))
 
 					try:
-						shape = [p[1] for p in filteredNodes]
-						pts, triangles = EarClipping(shape)
+						pts, triangles = EarClipping(filteredNodes)
 					except Exception as err:
 						print "EarClipping error:", err
 						continue
@@ -366,27 +371,31 @@ class OsmObjToLinesAndPolys(object):
 			#	continue
 
 			#If there are multiple outer ways, sort into separate multipolygons
-			if len(outerWays) > 1:
+			if len(outerWays) > 0:
 				if len(innerWays) > 0:
-					print "Outer polygons with inner ways", objId
+					#print "Outer polygons with inner ways", objId
 					groupedPolys = ProcessMultipoly(outerWays, innerWays)
 					if len(groupedPolys) > 0:
 						wayLines.append(('multipoly', objId, tags, groupedPolys))
 				else:
-					#Multiple outer ways and no innter ways
+					#One or more outer ways and no inner ways
 					outerWayData = [way[0] for way in outerWays]
 					shapes = [[way, []] for way in outerWayData]
-					wayLines.append(('multipoly', objId, tags, shapes))
+
+					for shape in shapes:
+						try:
+							o = IgnoreNull(ExtractLatLon(shape[0]))
+							ins = map(IgnoreNull, map(ExtractLatLon, shape[1]))
+							pts, triangles = EarClipping(o, ins)
+						except Exception as err:
+							print "EarClipping error in multipoly:", err
+							continue
+
+						wayLines.append(('tripoly', objId, tags, (pts, triangles)))
 	
 			if len(outerWays) == 0: #Ignore shape if no outer way exists
 				continue
 
-			if len(outerWays) == 1:
-				#Simple case of one outer way
-				outerWayData = [way[0] for way in outerWays]
-				innerWayData = [way[0] for way in innerWays]
-
-				wayLines.append(('multipoly', objId, tags, [[outerWayData[0], innerWayData]]))
 
 		return wayLines
 
