@@ -73,6 +73,7 @@ class MapHighways(object):
 				continue
 
 			for obj in highwayTypeDict[highwayType]:
+				shapeType = obj[0]
 				objId = obj[1]
 				tags = obj[2]
 				wayNodes = obj[3]
