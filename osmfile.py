@@ -398,7 +398,7 @@ class OsmObjToLinesAndPolys(object):
 							print "EarClipping error in multipoly:", err
 							continue
 
-						wayLines.append(('tripoly', objId, tags, (pts, triangles, "wgs84,")))
+						wayLines.append(('tripoly', objId, tags, (pts, triangles, ("wgs84",))))
 	
 			if len(outerWays) == 0: #Ignore shape if no outer way exists
 				continue

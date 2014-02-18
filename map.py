@@ -9,7 +9,7 @@ class Map(object):
 	def AddPlugin(self, plugin):
 		self.plugins.append(plugin)
 
-	def Draw(self, tileCode, zoom, hints, DrawCallback, tileSize, projCode="slippy"):
+	def Draw(self, tileCode, zoom, hints, DrawCallback, projObjs):
 
 		processingSteps = set()
 
@@ -25,7 +25,7 @@ class Map(object):
 			nextStep = sortableSteps[0]
 			processingSteps.discard(nextStep)
 
-			extraSteps = nextStep[1].DrawProcessing(tileCode, zoom, hints, nextStep[0], DrawCallback, tileSize, projCode)
+			extraSteps = nextStep[1].DrawProcessing(tileCode, zoom, hints, nextStep[0], DrawCallback, projObjs)
 
 			#Append extra steps to task list
 			for step in extraSteps:

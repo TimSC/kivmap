@@ -18,7 +18,7 @@ class MapWater(object):
 		#bounds left,bottom,right,top
 		return [0]
 
-	def DrawProcessing(self, tileCode, zoom, hints, layer, DrawCallback, tileSize, projCode):
+	def DrawProcessing(self, tileCode, zoom, hints, layer, DrawCallback, projObjs):
 		#bounds left,bottom,right,top
 		if self.source is None: return
 		if layer != 0: return
@@ -85,11 +85,11 @@ class MapWater(object):
 				DrawCallback(col)
 
 				if shapeType == "line":
-					graphics.DrawLine(wayNodes, width, DrawCallback, tileSize, projCode, tileCode, zoom)
+					graphics.DrawLine(wayNodes, width, DrawCallback, projObjs, tileCode, zoom)
 				if shapeType == "poly":
-					graphics.DrawPoly(wayNodes, width, DrawCallback, tileSize, projCode, tileCode, zoom)
+					graphics.DrawPoly(wayNodes, width, DrawCallback, projObjs, tileCode, zoom)
 				if shapeType == "multipoly":
-					graphics.DrawMultiPoly(wayNodes, width, DrawCallback, tileSize, projCode, tileCode, zoom)
+					graphics.DrawMultiPoly(wayNodes, width, DrawCallback, projObjs, tileCode, zoom)
 
 		return []
 

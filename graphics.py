@@ -7,25 +7,18 @@ import pickle, random, slippy, math
 
 gKeepProblemPolygons = False
 
-def Proj(lat_deg, lon_deg, xtile, ytile, zoom, tileWidth, tileHeight):
-	lat_rad = math.radians(lat_deg)
-	n = 2.0 ** zoom
+def Proj(lat_deg, lon_deg, projObjs):
+	ProjFunc = projObjs['wgs84']
+	return ProjFunc(lat_deg, lon_deg)
 
-	normXtile = ((lon_deg + 180.0) / 360.0 * n) - xtile
-	normYtile = ((1.0 - math.log(math.tan(lat_rad) + (1 / math.cos(lat_rad))) / math.pi) / 2.0 * n) - ytile
-	if 1:
-		normYtile = 1. - normYtile #Flip vertically
-
-	return (normXtile * tileWidth, normYtile * tileHeight)
-
-def DrawLine(obj, width, DrawCallback, tileSize, projCode, tileCode, tileZoom, dash_length = 1., dash_offset = 0.):
+def DrawLine(obj, width, DrawCallback, projObjs, tileCode, tileZoom, dash_length = 1., dash_offset = 0.):
 
 	xyPairs = []
 	for node in obj:
 		nodePos = node[1]
 		if nodePos is None: continue #Missing node
 
-		x, y = Proj(nodePos[0], nodePos[1], tileCode[0], tileCode[1], tileZoom, *tileSize)
+		x, y = Proj(nodePos[0], nodePos[1], projObjs)
 		#print nodePos, x, y
 		xyPairs.append(x)
 		xyPairs.append(y)
@@ -38,13 +31,13 @@ def DrawLine(obj, width, DrawCallback, tileSize, projCode, tileCode, tileZoom, d
 		li.dash_offset = 10.
 	DrawCallback(li)
 
-def DrawPoly(obj, width, DrawCallback, tileSize, projCode, tileCode, tileZoom):
+def DrawPoly(obj, width, DrawCallback, projObjs, tileCode, tileZoom):
 
 	vertices = []
 	for node in obj:
 		nodePos = node[1]
 		if nodePos is None: continue #Missing node
-		x, y = Proj(nodePos[0], nodePos[1], tileCode[0], tileCode[1], tileZoom, *tileSize)
+		x, y = Proj(nodePos[0], nodePos[1], projObjs)
 		vertices.append((x, y))
 
 	try:
@@ -72,17 +65,17 @@ def DrawPoly(obj, width, DrawCallback, tileSize, projCode, tileCode, tileZoom):
 		poly = Triangle(points = triPos)
 		DrawCallback(poly)
 
-def DrawTriPoly(obj, width, DrawCallback, tileSize, projCode, tileCode, tileZoom):
+def DrawTriPoly(obj, width, DrawCallback, projObjs, tileCode, tileZoom):
 
 	vertices2 = []
 	for nodePos in obj[0]:
 		if nodePos is None: continue #Missing node
-		x, y = Proj(nodePos[0], nodePos[1], tileCode[0], tileCode[1], tileZoom, *tileSize)
+		x, y = Proj(nodePos[0], nodePos[1], projObjs)
 		vertices2.append((x, y))
 
 	triangles = obj[1]
 	dataProj = obj[2]
-	print dataProj
+	#print dataProj
 
 	#print triangles
 	for tri in triangles:
@@ -99,7 +92,7 @@ def DrawTriPoly(obj, width, DrawCallback, tileSize, projCode, tileCode, tileZoom
 		DrawCallback(poly)
 
 
-def DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, tileSize, projCode, tileCode, tileZoom):
+def DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, projObjs, tileCode, tileZoom):
 
 	vertices = []
 	innerVertices = []
@@ -108,7 +101,7 @@ def DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, tileSize, projCode, 
 	for node in outerWay:
 		nodePos = node[1]
 		if nodePos is None: continue #Missing node
-		x, y = Proj(nodePos[0], nodePos[1], tileCode[0], tileCode[1], tileZoom, *tileSize)
+		x, y = Proj(nodePos[0], nodePos[1], projObjs)
 		vertices.append((x, y))
 
 	for innerWay in innerWays:
@@ -116,7 +109,7 @@ def DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, tileSize, projCode, 
 		for node in innerWay:
 			nodePos = node[1]
 			if nodePos is None: continue #Missing node
-			x, y = Proj(nodePos[0], nodePos[1], tileCode[0], tileCode[1], tileZoom, *tileSize)
+			x, y = Proj(nodePos[0], nodePos[1], projObjs)
 			innerWayVertices.append((x, y))
 		innerVertices.append(innerWayVertices)
 
@@ -157,8 +150,8 @@ def DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, tileSize, projCode, 
 		poly = Triangle(points = triPos)
 		DrawCallback(poly)
 
-def DrawMultiPoly(obj, width, DrawCallback, tileSize, projCode, tileCode, tileZoom):
+def DrawMultiPoly(obj, width, DrawCallback, projObjs, tileCode, tileZoom):
 	for singleOuterPoly in obj:
-		DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, tileSize, projCode, tileCode, tileZoom)
+		DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, projObjs, tileCode, tileZoom)
 
 

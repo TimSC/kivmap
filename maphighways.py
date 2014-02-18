@@ -43,7 +43,7 @@ class MapHighways(object):
 		#bounds left,bottom,right,top
 		return [5]
 
-	def DrawProcessing(self, tileCode, zoom, hints, layer, DrawCallback, tileSize, proj):
+	def DrawProcessing(self, tileCode, zoom, hints, layer, DrawCallback, projObjs):
 		#bounds left,bottom,right,top
 		if self.source is None: return
 		if layer != 5: return
@@ -104,7 +104,7 @@ class MapHighways(object):
 			
 				col = Color(r, g, b)
 				DrawCallback(col)
-				graphics.DrawLine(wayNodes, width, DrawCallback, tileSize, proj, tileCode, zoom, dash_length, dash_offset)
+				graphics.DrawLine(wayNodes, width, DrawCallback, projObjs, tileCode, zoom, dash_length, dash_offset)
 
 		return []
 
