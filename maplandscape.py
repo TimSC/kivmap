@@ -101,12 +101,8 @@ class MapLandscape(object):
 
 				if shapeType == "line":
 					graphics.DrawLine(wayNodes, width, DrawCallback, projObjs, tileCode, zoom)
-				if shapeType == "poly":
-					graphics.DrawPoly(wayNodes, width, DrawCallback, projObjs, tileCode, zoom)
 				if shapeType == "tripoly":
 					graphics.DrawTriPoly(wayNodes, width, DrawCallback, projObjs, tileCode, zoom)
-				if shapeType == "multipoly":
-					graphics.DrawMultiPoly(wayNodes, width, DrawCallback, projObjs, tileCode, zoom)
 
 		return []
 

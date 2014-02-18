@@ -73,7 +73,6 @@ class MapHighways(object):
 				continue
 
 			for obj in highwayTypeDict[highwayType]:
-				if obj[0] != "line": continue
 				objId = obj[1]
 				tags = obj[2]
 				wayNodes = obj[3]
@@ -104,8 +103,11 @@ class MapHighways(object):
 			
 				col = Color(r, g, b)
 				DrawCallback(col)
-				graphics.DrawLine(wayNodes, width, DrawCallback, projObjs, tileCode, zoom, dash_length, dash_offset)
 
+				if shapeType == "line":
+					graphics.DrawLine(wayNodes, width, DrawCallback, projObjs, tileCode, zoom, dash_length, dash_offset)
+				if shapeType == "tripoly":
+					graphics.DrawTriPoly(wayNodes, width, DrawCallback, projObjs, tileCode, zoom)
 		return []
 
 	def SetSource(self, source):
