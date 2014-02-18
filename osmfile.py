@@ -156,10 +156,10 @@ class OsmObjToLinesAndPolys(object):
 		self.tagsOfInterest = {}
 		self.closeWaysAreAreas = True
 
-	def AddTagOfInterest(self, key, val="*"):
+	def AddTagOfInterest(self, key, val="*", area = None):
 		if key not in self.tagsOfInterest:
 			self.tagsOfInterest[key] = []
-		self.tagsOfInterest[key].append(val)
+		self.tagsOfInterest[key].append((val, area))
 
 	def Do(self, osmParseObj, bounds = None):
 
@@ -167,16 +167,21 @@ class OsmObjToLinesAndPolys(object):
 		for objId in osmParseObj.ways:
 			w = osmParseObj.ways[objId]
 			tags = w[1]
-			isArea = False
+			isArea = None
+			foundAreaVal = None
 			ofInterest = False
 			
 			for tagOfInterest in self.tagsOfInterest:
 				if tagOfInterest in tags:
 					searchVal = self.tagsOfInterest[tagOfInterest]
-					if "*" in searchVal:
-						ofInterest = True
-					if tags[tagOfInterest] in searchVal:
-						ofInterest = True
+
+					for val, valArea in searchVal:
+						if "*" == val:
+							ofInterest = True
+							foundAreaVal = valArea
+						if tags[tagOfInterest] == val:
+							ofInterest = True
+							foundAreaVal = valArea
 
 			if not ofInterest:
 				continue
@@ -184,15 +189,21 @@ class OsmObjToLinesAndPolys(object):
 			firstNode = w[2][0][1]
 			lastNode = w[2][-1][1]
 
-			if self.closeWaysAreAreas and int(firstNode['ref']) == int(lastNode['ref']):
-				isArea = True
-
 			if 'area' in tags:
 				areaValue = str(tags['area'])
 				if areaValue.lower() in ["yes", "1"]:
 					isArea = True
 				if areaValue.lower() in ["no", "0"]:
 					isArea = False
+
+			if isArea is None and foundAreaVal is not None:
+				isArea = foundAreaVal
+
+			if isArea is None and self.closeWaysAreAreas and int(firstNode['ref']) == int(lastNode['ref']):
+				isArea = True
+
+			if isArea is None:
+				isArea = False #Default to unclosed
 
 			wayNodes = GetNodesFromWay(w[2], osmParseObj)
 
@@ -404,7 +415,7 @@ class OsmFile(object):
 		osmObjToLinesAndPolys = OsmObjToLinesAndPolys()
 		osmObjToLinesAndPolys.AddTagOfInterest('waterway',"*")
 		osmObjToLinesAndPolys.AddTagOfInterest('water',"*")
-		osmObjToLinesAndPolys.AddTagOfInterest('natural',"coastline")
+		osmObjToLinesAndPolys.AddTagOfInterest('natural',"coastline", 0)
 		shapes = osmObjToLinesAndPolys.Do(self.osmParse, bounds)
 		return shapes
 
