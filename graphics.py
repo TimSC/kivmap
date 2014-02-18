@@ -70,6 +70,7 @@ def DrawTriPoly(obj, width, DrawCallback, projObjs, tileCode, tileZoom):
 	vertices2 = []
 	for nodePos in obj[0]:
 		if nodePos is None: continue #Missing node
+		#print nodePos
 		x, y = Proj(nodePos[0], nodePos[1], projObjs)
 		vertices2.append((x, y))
 
@@ -90,68 +91,4 @@ def DrawTriPoly(obj, width, DrawCallback, projObjs, tileCode, tileZoom):
 
 		poly = Triangle(points = triPos)
 		DrawCallback(poly)
-
-
-def DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, projObjs, tileCode, tileZoom):
-
-	vertices = []
-	innerVertices = []
-	outerWay = singleOuterPoly[0]
-	innerWays = singleOuterPoly[1]
-	for node in outerWay:
-		nodePos = node[1]
-		if nodePos is None: continue #Missing node
-		x, y = Proj(nodePos[0], nodePos[1], projObjs)
-		vertices.append((x, y))
-
-	for innerWay in innerWays:
-		innerWayVertices = []
-		for node in innerWay:
-			nodePos = node[1]
-			if nodePos is None: continue #Missing node
-			x, y = Proj(nodePos[0], nodePos[1], projObjs)
-			innerWayVertices.append((x, y))
-		innerVertices.append(innerWayVertices)
-
-	if len(vertices) == 0:
-		return
-
-	#Triangularise shape
-	try:
-		vertices2, triangles = EarClipping(vertices, innerVertices)
-	except Exception as err:
-		#Problems encountered
-		print err
-		if gKeepProblemPolygons:
-			randFilename = "polyerr{0}.dat".format(random.randint(0,1000000))
-			pickle.dump((vertices, innerVertices), open(randFilename, "wb"))
-			print "Saved err polygon to", randFilename
-		try:
-			#Try to triangularise by ignoring holes
-			vertices2, triangles = EarClipping(vertices, [])
-		except Exception as err:
-			return
-
-	#if len(innerVertices) == 0: return
-	
-	for tri in triangles:
-		for ptNum in tri:
-			if ptNum < 0 or ptNum >= len(vertices2):
-				raise Exception("Out of bounds vertex index")
-
-	#print triangles
-
-	for tri in triangles:
-		triPos = []
-		for p in tri:
-			triPos.extend(list(vertices2[p]))
-		#print triPos
-
-		poly = Triangle(points = triPos)
-		DrawCallback(poly)
-
-def DrawMultiPoly(obj, width, DrawCallback, projObjs, tileCode, tileZoom):
-	for singleOuterPoly in obj:
-		DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, projObjs, tileCode, tileZoom)
-
 

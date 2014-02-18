@@ -188,15 +188,35 @@ def ProcessMultipoly(outerWays, innerWays):
 	#print innerWaysInOuterNum
 
 	#Group outer and corresponding inner ways
-	out = []
+	collectingTris = []
 	for i, ow in enumerate(outerWays):
 		containedWays = innerWaysInOuterNum[i]
 		iws = []
 		for iw in containedWays:
 			iws.append(innerWays[iw][0])
-		out.append([ow[0], iws])
 
-	return out
+		#Retrangulate with holes if necessary
+		o = IgnoreNull(ExtractLatLon(ow[0]))
+		ins = map(IgnoreNull, map(ExtractLatLon, iws))
+		try:
+			pts, triangles = EarClipping(o, ins)
+		except Exception as err:
+			print err
+			pts, triangles = EarClipping(o, [])
+
+		collectingTris.append((pts, triangles))
+
+	#Merge collected triangles
+	finalVertices = []
+	finalTriangles = []
+	for pts, triangles in collectingTris:
+
+		startIndex = len(finalVertices)
+		modTris = [[ptNum + startIndex for ptNum in tri] for tri in triangles]
+		finalVertices.extend(pts)
+		finalTriangles.extend(modTris)
+
+	return (finalVertices, finalTriangles, ("wgs84",))
 
 def IgnoreNull(nodes):
 	filteredNodes = []
@@ -383,7 +403,7 @@ class OsmObjToLinesAndPolys(object):
 					#print "Outer polygons with inner ways", objId
 					groupedPolys = ProcessMultipoly(outerWays, innerWays)
 					if len(groupedPolys) > 0:
-						wayLines.append(('multipoly', objId, tags, groupedPolys))
+						wayLines.append(('tripoly', objId, tags, groupedPolys))
 				else:
 					#One or more outer ways and no inner ways
 					outerWayData = [way[0] for way in outerWays]
