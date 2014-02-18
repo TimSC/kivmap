@@ -4,7 +4,7 @@ from kivy.uix.label import Label
 from kivy.uix.scatter import Scatter
 from kivy.graphics import Color, Ellipse, Line, Rectangle
 from kivy.uix.stencilview import StencilView
-import slippy, random
+import random
 
 class TileWidget(Scatter):
 	def __init__(self, **args):
@@ -104,10 +104,7 @@ class TileView(StencilView):
 		self.DrawCallback(bg)
 
 		#Draw foreground
-		tl = slippy.num2deg(self.tileNum[0], self.tileNum[1], self.tileZoom)
-		br = slippy.num2deg(self.tileNum[0]+1, self.tileNum[1]+1, self.tileZoom)
-		proj = slippy.TileProj(self.tileNum[0], self.tileNum[1], self.tileZoom, self.size[0], self.size[1])
-		self.map.Draw((tl[1], br[0], br[1], tl[0]), self.tileZoom, hints, self.DrawCallback, proj.Proj)
+		self.map.Draw(self.tileNum, self.tileZoom, hints, self.DrawCallback, self.size, "slippy")
 		#bounds left,bottom,right,top
 
 	def DrawCallback(self, obj):

@@ -3,17 +3,29 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.graphics import Color, Ellipse, Line, Rectangle, Mesh, Triangle
 from pyshull.earclipping import EarClipping
-import pickle, random
+import pickle, random, slippy, math
 
 gKeepProblemPolygons = False
 
-def DrawLine(obj, width, DrawCallback, Proj, dash_length = 1., dash_offset = 0.):
+def Proj(lat_deg, lon_deg, xtile, ytile, zoom, tileWidth, tileHeight):
+	lat_rad = math.radians(lat_deg)
+	n = 2.0 ** zoom
+
+	normXtile = ((lon_deg + 180.0) / 360.0 * n) - xtile
+	normYtile = ((1.0 - math.log(math.tan(lat_rad) + (1 / math.cos(lat_rad))) / math.pi) / 2.0 * n) - ytile
+	if 1:
+		normYtile = 1. - normYtile #Flip vertically
+
+	return (normXtile * tileWidth, normYtile * tileHeight)
+
+def DrawLine(obj, width, DrawCallback, tileSize, projCode, tileCode, tileZoom, dash_length = 1., dash_offset = 0.):
 
 	xyPairs = []
 	for node in obj:
 		nodePos = node[1]
 		if nodePos is None: continue #Missing node
-		x, y = Proj(*nodePos)
+
+		x, y = Proj(nodePos[0], nodePos[1], tileCode[0], tileCode[1], tileZoom, *tileSize)
 		#print nodePos, x, y
 		xyPairs.append(x)
 		xyPairs.append(y)
@@ -26,13 +38,13 @@ def DrawLine(obj, width, DrawCallback, Proj, dash_length = 1., dash_offset = 0.)
 		li.dash_offset = 10.
 	DrawCallback(li)
 
-def DrawPoly(obj, width, DrawCallback, Proj):
+def DrawPoly(obj, width, DrawCallback, tileSize, projCode, tileCode, tileZoom):
 
 	vertices = []
 	for node in obj:
 		nodePos = node[1]
 		if nodePos is None: continue #Missing node
-		x, y = Proj(*nodePos)
+		x, y = Proj(nodePos[0], nodePos[1], tileCode[0], tileCode[1], tileZoom, *tileSize)
 		vertices.append((x, y))
 
 	try:
@@ -60,15 +72,16 @@ def DrawPoly(obj, width, DrawCallback, Proj):
 		poly = Triangle(points = triPos)
 		DrawCallback(poly)
 
-def DrawTriPoly(obj, width, DrawCallback, Proj):
+def DrawTriPoly(obj, width, DrawCallback, tileSize, projCode, tileCode, tileZoom):
 
 	vertices2 = []
-	for node in obj[0]:
-		if node is None: continue #Missing node
-		x, y = Proj(*node)
+	for nodePos in obj[0]:
+		if nodePos is None: continue #Missing node
+		x, y = Proj(nodePos[0], nodePos[1], tileCode[0], tileCode[1], tileZoom, *tileSize)
 		vertices2.append((x, y))
 
 	triangles = obj[1]
+	#dataProj = obj[2]
 
 	#print triangles
 	for tri in triangles:
@@ -85,7 +98,7 @@ def DrawTriPoly(obj, width, DrawCallback, Proj):
 		DrawCallback(poly)
 
 
-def DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, Proj):
+def DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, tileSize, projCode, tileCode, tileZoom):
 
 	vertices = []
 	innerVertices = []
@@ -94,7 +107,7 @@ def DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, Proj):
 	for node in outerWay:
 		nodePos = node[1]
 		if nodePos is None: continue #Missing node
-		x, y = Proj(*nodePos)
+		x, y = Proj(nodePos[0], nodePos[1], tileCode[0], tileCode[1], tileZoom, *tileSize)
 		vertices.append((x, y))
 
 	for innerWay in innerWays:
@@ -102,7 +115,7 @@ def DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, Proj):
 		for node in innerWay:
 			nodePos = node[1]
 			if nodePos is None: continue #Missing node
-			x, y = Proj(*nodePos)
+			x, y = Proj(nodePos[0], nodePos[1], tileCode[0], tileCode[1], tileZoom, *tileSize)
 			innerWayVertices.append((x, y))
 		innerVertices.append(innerWayVertices)
 
@@ -143,7 +156,8 @@ def DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, Proj):
 		poly = Triangle(points = triPos)
 		DrawCallback(poly)
 
-def DrawMultiPoly(obj, width, DrawCallback, Proj):	
+def DrawMultiPoly(obj, width, DrawCallback, tileSize, projCode, tileCode, tileZoom):
 	for singleOuterPoly in obj:
-		DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, Proj)
+		DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, tileSize, projCode, tileCode, tileZoom)
+
 

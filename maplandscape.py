@@ -27,21 +27,19 @@ class MapLandscape(object):
 			'construction': {'fillcol': 0xfffee5},
 			}
 
-	def StartDrawing(self, bounds, zoom, hints):
+	def StartDrawing(self, tileCode, zoom, hints):
 		#bounds left,bottom,right,top
 		return [0]
 
-	def DrawProcessing(self, bounds, zoom, hints, layer, DrawCallback, Proj):
+	def DrawProcessing(self, tileCode, zoom, hints, layer, DrawCallback, tileSize, proj):
 		#bounds left,bottom,right,top
 		if self.source is None: return
 		if layer != 0: return
-		tileLonWidth = bounds[2] - bounds[0]
-		tileLonHeight = bounds[3] - bounds[1]
 
 		#print "draw layer", layer
 		#print "bounds", bounds
 
-		objs = self.source.GetLandscape(bounds, hints)
+		objs = self.source.GetLandscape(tileCode, zoom, hints)
 		#print "len objs", len(objs)
 
 		typeDict = {}
@@ -102,13 +100,13 @@ class MapLandscape(object):
 				DrawCallback(col)
 
 				if shapeType == "line":
-					graphics.DrawLine(wayNodes, width, DrawCallback, Proj)
+					graphics.DrawLine(wayNodes, width, DrawCallback, tileSize, proj, tileCode, zoom)
 				if shapeType == "poly":
-					graphics.DrawPoly(wayNodes, width, DrawCallback, Proj)
+					graphics.DrawPoly(wayNodes, width, DrawCallback, tileSize, proj, tileCode, zoom)
 				if shapeType == "tripoly":
-					graphics.DrawTriPoly(wayNodes, width, DrawCallback, Proj)
+					graphics.DrawTriPoly(wayNodes, width, DrawCallback, tileSize, proj, tileCode, zoom)
 				if shapeType == "multipoly":
-					graphics.DrawMultiPoly(wayNodes, width, DrawCallback, Proj)
+					graphics.DrawMultiPoly(wayNodes, width, DrawCallback, tileSize, proj, tileCode, zoom)
 
 		return []
 

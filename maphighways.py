@@ -39,21 +39,19 @@ class MapHighways(object):
 			'path': {'col': 0xffe21c, 'width': 1, 'dash_offset': 10., 'dash_length': 10.},
 			}
 
-	def StartDrawing(self, bounds, zoom, hints):
+	def StartDrawing(self, tileCode, zoom, hints):
 		#bounds left,bottom,right,top
 		return [5]
 
-	def DrawProcessing(self, bounds, zoom, hints, layer, DrawCallback, Proj):
+	def DrawProcessing(self, tileCode, zoom, hints, layer, DrawCallback, tileSize, proj):
 		#bounds left,bottom,right,top
 		if self.source is None: return
 		if layer != 5: return
-		tileLonWidth = bounds[2] - bounds[0]
-		tileLonHeight = bounds[3] - bounds[1]
 
 		#print "draw layer", layer
 		#print "bounds", bounds
 
-		highwayNetwork = self.source.GetHighwayNetwork(bounds, hints)
+		highwayNetwork = self.source.GetHighwayNetwork(tileCode, zoom, hints)
 		#print "len highwayNetwork", len(highwayNetwork)	
 
 		highwayTypeDict = {}
@@ -106,7 +104,7 @@ class MapHighways(object):
 			
 				col = Color(r, g, b)
 				DrawCallback(col)
-				graphics.DrawLine(wayNodes, width, DrawCallback, Proj, dash_length, dash_offset)
+				graphics.DrawLine(wayNodes, width, DrawCallback, tileSize, proj, tileCode, zoom, dash_length, dash_offset)
 
 		return []
 

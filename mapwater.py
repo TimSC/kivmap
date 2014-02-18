@@ -14,21 +14,19 @@ class MapWater(object):
 			'water': {'col': 0x000000},
 			}
 
-	def StartDrawing(self, bounds, zoom, hints):
+	def StartDrawing(self, tileCode, zoom, hints):
 		#bounds left,bottom,right,top
 		return [0]
 
-	def DrawProcessing(self, bounds, zoom, hints, layer, DrawCallback, Proj):
+	def DrawProcessing(self, tileCode, zoom, hints, layer, DrawCallback, tileSize, projCode):
 		#bounds left,bottom,right,top
 		if self.source is None: return
 		if layer != 0: return
-		tileLonWidth = bounds[2] - bounds[0]
-		tileLonHeight = bounds[3] - bounds[1]
 
 		#print "draw layer", layer
 		#print "bounds", bounds
 
-		water = self.source.GetWater(bounds, hints)
+		water = self.source.GetWater(tileCode, zoom, hints)
 		#print "len water", len(water)	
 
 		typeDict = {}
@@ -87,11 +85,11 @@ class MapWater(object):
 				DrawCallback(col)
 
 				if shapeType == "line":
-					graphics.DrawLine(wayNodes, width, DrawCallback, Proj)
+					graphics.DrawLine(wayNodes, width, DrawCallback, tileSize, projCode, tileCode, zoom)
 				if shapeType == "poly":
-					graphics.DrawPoly(wayNodes, width, DrawCallback, Proj)
+					graphics.DrawPoly(wayNodes, width, DrawCallback, tileSize, projCode, tileCode, zoom)
 				if shapeType == "multipoly":
-					graphics.DrawMultiPoly(wayNodes, width, DrawCallback, Proj)
+					graphics.DrawMultiPoly(wayNodes, width, DrawCallback, tileSize, projCode, tileCode, zoom)
 
 		return []
 

@@ -4,6 +4,7 @@ import trianglecollision
 import xml.parsers.expat as expat
 from xml.sax.saxutils import escape, quoteattr
 from pyshull.earclipping import EarClipping
+import slippy
 
 try:
 	import bz2
@@ -217,7 +218,13 @@ class OsmObjToLinesAndPolys(object):
 			self.tagsOfInterest[key] = []
 		self.tagsOfInterest[key].append((val, area))
 
-	def Do(self, osmParseObj, bounds = None):
+	def Do(self, osmParseObj, tileCode, tileZoom):
+
+		tl = slippy.num2deg(tileCode[0], tileCode[1], tileZoom)
+		#tileResolution = 512
+		br = slippy.num2deg(tileCode[0]+1, tileCode[1]+1, tileZoom)
+		#proj = slippy.TileProj(tileCode[0], tileCode[1], tileZoom, tileResolution, tileResolution)
+		bounds = (tl[1], br[0], br[1], tl[0])
 
 		wayLines = []
 		for objId in osmParseObj.ways:
@@ -278,7 +285,7 @@ class OsmObjToLinesAndPolys(object):
 						print "EarClipping error:", err
 						continue
 
-					wayLines.append(('tripoly', objId, tags, (pts, triangles)))
+					wayLines.append(('tripoly', objId, tags, (pts, triangles, ("wgs84",))))
 				else:
 					wayLines.append(('line', objId, tags, wayNodes))
 
@@ -476,35 +483,35 @@ class OsmFile(object):
 			len(self.osmParse.ways),
 			len(self.osmParse.relations))
 
-	def GetHighwayNetwork(self, bounds=None, hints={}):
+	def GetHighwayNetwork(self, tileCode=None, tileZoom=12, hints={}):
 
 		osmObjToLinesAndPolys = OsmObjToLinesAndPolys()
 		osmObjToLinesAndPolys.AddTagOfInterest('highway',"*")
-		shapes = osmObjToLinesAndPolys.Do(self.osmParse, bounds)
+		shapes = osmObjToLinesAndPolys.Do(self.osmParse, tileCode, tileZoom)
 		return shapes
 
-	def GetRailNetwork(self, bounds=None, hints={}):
+	def GetRailNetwork(self, tileCode=None, hints={}):
 		pass
 
-	def GetWater(self, bounds=None, hints={}):
+	def GetWater(self, tileCode=None, tileZoom=12, hints={}):
 		osmObjToLinesAndPolys = OsmObjToLinesAndPolys()
 		osmObjToLinesAndPolys.AddTagOfInterest('waterway',"*")
 		osmObjToLinesAndPolys.AddTagOfInterest('water',"*")
 		osmObjToLinesAndPolys.AddTagOfInterest('natural',"coastline", 0)
-		shapes = osmObjToLinesAndPolys.Do(self.osmParse, bounds)
+		shapes = osmObjToLinesAndPolys.Do(self.osmParse, tileCode, tileZoom)
 		return shapes
 
-	def GetLandscape(self, bounds=None, hints={}):
+	def GetLandscape(self, tileCode=None, tileZoom=12, hints={}):
 		osmObjToLinesAndPolys = OsmObjToLinesAndPolys()
 		osmObjToLinesAndPolys.AddTagOfInterest('landuse',"*")
 		osmObjToLinesAndPolys.AddTagOfInterest('natural',"wood")
-		shapes = osmObjToLinesAndPolys.Do(self.osmParse, bounds)
+		shapes = osmObjToLinesAndPolys.Do(self.osmParse, tileCode, tileZoom)
 		return shapes
 
-	def GetContours(self, bounds=None, hints={}):
+	def GetContours(self, tileCode=None, tileZoom=12, hints={}):
 		pass
 
-	def GetInfrastructure(self, bounds=None, hints={}):
+	def GetInfrastructure(self, tileCode=None, tileZoom=12, hints={}):
 		pass
 
 
