@@ -87,6 +87,26 @@ def RunTriangleTestBattery(tri1, tri2, expected, description):
 	ReorderTriangleThenTest(tri2, tri1, 0, expected, description)
 	ReorderTriangleThenTest(tri2, tri1, 1, expected, description)
 	
+def DoPolyPolyCollision(polyAverts, polyAtris, polyBverts, polyBtris):
+
+	for triA in polyAtris:
+		triApos = []
+		if len(triA) != 3:
+			raise ValueError("Triangle has wrong number of points")
+		for ptNum in triA:
+			triApos.append(polyAverts[ptNum])
+
+		for triB in polyBtris:
+			triBpos = []
+			if len(triB) != 3:
+				raise ValueError("Triangle has wrong number of points")
+			for ptNum in triB:
+				triBpos.append(polyBverts[ptNum])
+
+			if DoTrianglesCollide(triApos, triBpos):
+				return True
+
+	return False
 
 if __name__ == "__main__":
 	#Unit tests

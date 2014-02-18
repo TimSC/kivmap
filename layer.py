@@ -16,8 +16,8 @@ class MapLayer(RelativeLayout):
 		self.tileSize = metrics.dp(self.unscaledTileSize)
 		self.map = map.Map()
 
-		source = osmfile.OsmFile("Simple.osm.gz")
-		#source = osmfile.OsmFile("IsleOfWight-Fosm-Oct2013.osm.gz")
+		#source = osmfile.OsmFile("Simple.osm.gz")
+		source = osmfile.OsmFile("IsleOfWight-Fosm-Oct2013.osm.gz")
 
 		highways = maphighways.MapHighways()
 		highways.SetSource(source)

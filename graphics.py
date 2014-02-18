@@ -55,12 +55,12 @@ def DrawPoly(obj, width, DrawCallback, Proj):
 		poly = Triangle(points = triPos)
 		DrawCallback(poly)
 
-def DrawMultiPoly(obj, width, DrawCallback, Proj):
+def DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, Proj):
 
 	vertices = []
 	innerVertices = []
-	outerWay = obj[0]
-	innerWays = obj[1]
+	outerWay = singleOuterPoly[0]
+	innerWays = singleOuterPoly[1]
 	for node in outerWay:
 		nodePos = node[1]
 		if nodePos is None: continue #Missing node
@@ -112,4 +112,8 @@ def DrawMultiPoly(obj, width, DrawCallback, Proj):
 
 		poly = Triangle(points = triPos)
 		DrawCallback(poly)
+
+def DrawMultiPoly(obj, width, DrawCallback, Proj):	
+	for singleOuterPoly in obj:
+		DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, Proj)
 

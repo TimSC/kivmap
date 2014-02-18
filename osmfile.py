@@ -1,7 +1,10 @@
 
 import os
+import trianglecollision
 import xml.parsers.expat as expat
 from xml.sax.saxutils import escape, quoteattr
+from pyshull.earclipping import EarClipping
+
 try:
 	import bz2
 	bz2Available = True
@@ -151,6 +154,50 @@ def MergeWayFragments(wayData):
 
 	return wayData
 
+def ProcessMultipoly(outerWays, innerWays):
+	#Match corresponding outer and inner ways
+	outerWaysData = [way[0] for way in outerWays]
+	innerWaysData = [way[0] for way in innerWays]
+	outerWaysTri = []
+	innerWaysTri = []
+
+	for outerWayData in outerWaysData:
+		nodePoss = [p[1] for p in outerWayData]
+
+		pts, triangles = EarClipping(nodePoss)
+		outerWaysTri.append((pts, triangles))
+
+	for innerWayData in innerWaysData:
+		nodePoss = [p[1] for p in innerWayData]
+
+		pts, triangles = EarClipping(nodePoss)
+		innerWaysTri.append((pts, triangles))
+
+	innerWaysInOuterNum = []
+	for oNum, outerWayTri in enumerate(outerWaysTri):
+		matchIndices = []
+		for iNum, innerWayTri in enumerate(innerWaysTri):
+			coll = trianglecollision.DoPolyPolyCollision(outerWayTri[0], outerWayTri[1], 
+				innerWayTri[0], innerWayTri[1])
+			if coll:
+				matchIndices.append(iNum)
+		innerWaysInOuterNum.append(matchIndices)
+	
+	#print len(outerWays), len(innerWays)
+	#print innerWaysInOuterNum
+
+	#Group outer and corresponding inner ways
+	out = []
+	for i, ow in enumerate(outerWays):
+		containedWays = innerWaysInOuterNum[i]
+		iws = []
+		for iw in containedWays:
+			iws.append(innerWays[iw][0])
+		out.append([ow[0], iws])
+
+	return out
+
+
 class OsmObjToLinesAndPolys(object):
 	def __init__(self):
 		self.tagsOfInterest = {}
@@ -286,8 +333,8 @@ class OsmObjToLinesAndPolys(object):
 			#	print "frag", ow[0][0], ow[-1][0]
 			preMergeCount = len(outerWays)
 			outerWays = MergeWayFragments(outerWays)
-			if len(outerWays) != preMergeCount:
-				print "result of merge", len(outerWays), preMergeCount
+			#if len(outerWays) != preMergeCount:
+			#	print "result of merge", len(outerWays), preMergeCount
 			for ow, clo in outerWays:
 				if clo is False:
 					print "Warning: unclosed outer way", ow[0][0], ow[-1][0]
@@ -302,16 +349,22 @@ class OsmObjToLinesAndPolys(object):
 			#print "inner", innerWays
 			#print "outer", outerWays
 
-
 			#if checkWayInRoi is False:
 			#	continue
 
-
 			#If there are multiple outer ways, sort into separate multipolygons
 			if len(outerWays) > 1:
-				print "Multiple outer polygons not implemented"
-				#ProcessMultipoly(outerWays, innerWays)
-
+				if len(innerWays) > 0:
+					print "Outer polygons with inner ways", objId
+					groupedPolys = ProcessMultipoly(outerWays, innerWays)
+					if len(groupedPolys) > 0:
+						wayLines.append(('multipoly', objId, tags, groupedPolys))
+				else:
+					#Multiple outer ways and no innter ways
+					outerWayData = [way[0] for way in outerWays]
+					shapes = [[way, []] for way in outerWayData]
+					wayLines.append(('multipoly', objId, tags, shapes))
+	
 			if len(outerWays) == 0: #Ignore shape if no outer way exists
 				continue
 
@@ -320,7 +373,7 @@ class OsmObjToLinesAndPolys(object):
 				outerWayData = [way[0] for way in outerWays]
 				innerWayData = [way[0] for way in innerWays]
 
-				wayLines.append(('multipoly', objId, tags, ([outerWayData[0], innerWayData])))
+				wayLines.append(('multipoly', objId, tags, [[outerWayData[0], innerWayData]]))
 
 		return wayLines
 
