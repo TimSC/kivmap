@@ -7,7 +7,7 @@ import pickle, random
 
 gKeepProblemPolygons = False
 
-def DrawLine(obj, width, DrawCallback, Proj):
+def DrawLine(obj, width, DrawCallback, Proj, dash_length = 1., dash_offset = 0.):
 
 	xyPairs = []
 	for node in obj:
@@ -19,6 +19,11 @@ def DrawLine(obj, width, DrawCallback, Proj):
 		xyPairs.append(y)
 
 	li = Line(points=xyPairs, width=width)
+
+	if dash_length != 1. or dash_offset != 0.:
+		li.width = 1.0 #Kivy only supports dashes with width of 1
+		li.dash_length = 10.
+		li.dash_offset = 10.
 	DrawCallback(li)
 
 def DrawPoly(obj, width, DrawCallback, Proj):

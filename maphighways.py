@@ -33,10 +33,10 @@ class MapHighways(object):
 			'bus_guideway': {'col': 0xc8d5ff, 'width': 1},
 			'raceway': {'col': 0xc5ffb6, 'width': 1}, 
 			'road': {'col': 0xffffd9, 'width': 1},
-			'footway': {'col': 0xfff668, 'width': 1}, 
-			'bridleway': {'col': 0x4799ff, 'width': 1},
-			'steps': {'col': 0xfff668, 'width': 1}, 
-			'path': {'col': 0xfff668, 'width': 1},
+			'footway': {'col': 0xffe21c, 'width': 1, 'dash_offset': 10., 'dash_length': 10.}, 
+			'bridleway': {'col': 0x4799ff, 'width': 1, 'dash_offset': 10., 'dash_length': 10.},
+			'steps': {'col': 0xfff668, 'width': 1, 'dash_offset': 3., 'dash_length': 3.}, 
+			'path': {'col': 0xffe21c, 'width': 1, 'dash_offset': 10., 'dash_length': 10.},
 			}
 
 	def StartDrawing(self, bounds, zoom, hints):
@@ -79,6 +79,8 @@ class MapHighways(object):
 				objId = obj[1]
 				tags = obj[2]
 				wayNodes = obj[3]
+				dash_length = 1.
+				dash_offset = 0.
 
 				highwayType = tags['highway']
 				highwayStyle = {}
@@ -96,10 +98,15 @@ class MapHighways(object):
 					b = (highwayCol & 0xff) / 255.
 				if 'width' in highwayStyle:
 					width = highwayStyle['width']
+
+				if 'dash_length' in highwayStyle:
+					dash_length = highwayStyle['dash_length']
+				if 'dash_offset' in highwayStyle:
+					dash_offset = highwayStyle['dash_offset']
 			
 				col = Color(r, g, b)
 				DrawCallback(col)
-				graphics.DrawLine(wayNodes, width, DrawCallback, Proj)
+				graphics.DrawLine(wayNodes, width, DrawCallback, Proj, dash_length, dash_offset)
 
 		return []
 
