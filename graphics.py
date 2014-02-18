@@ -60,6 +60,31 @@ def DrawPoly(obj, width, DrawCallback, Proj):
 		poly = Triangle(points = triPos)
 		DrawCallback(poly)
 
+def DrawTriPoly(obj, width, DrawCallback, Proj):
+
+	vertices2 = []
+	for node in obj[0]:
+		if node is None: continue #Missing node
+		x, y = Proj(*node)
+		vertices2.append((x, y))
+
+	triangles = obj[1]
+
+	#print triangles
+	for tri in triangles:
+		for ptNum in tri:
+			if ptNum < 0 or ptNum >= len(vertices2):
+				raise Exception("Out of bounds vertex index")
+
+	for tri in triangles:
+		triPos = []
+		for p in tri:
+			triPos.extend(list(vertices2[p]))
+
+		poly = Triangle(points = triPos)
+		DrawCallback(poly)
+
+
 def DrawPolyWithHoles(singleOuterPoly, width, DrawCallback, Proj):
 
 	vertices = []

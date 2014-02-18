@@ -260,7 +260,20 @@ class OsmObjToLinesAndPolys(object):
 
 			if wayInRoi or bounds is None:
 				if isArea:
-					wayLines.append(('poly', objId, tags, wayNodes[:-1]))
+					nodes = wayNodes[:-1]
+					filteredNodes = []
+					for n in nodes:	
+						if n is not None:
+							filteredNodes.append(n)
+
+					try:
+						shape = [p[1] for p in filteredNodes]
+						pts, triangles = EarClipping(shape)
+					except Exception as err:
+						print "EarClipping error:", err
+						continue
+
+					wayLines.append(('tripoly', objId, tags, (pts, triangles)))
 				else:
 					wayLines.append(('line', objId, tags, wayNodes))
 
