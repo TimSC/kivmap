@@ -81,7 +81,8 @@ def DrawTriPoly(obj, width, DrawCallback, tileSize, projCode, tileCode, tileZoom
 		vertices2.append((x, y))
 
 	triangles = obj[1]
-	#dataProj = obj[2]
+	dataProj = obj[2]
+	print dataProj
 
 	#print triangles
 	for tri in triangles:
