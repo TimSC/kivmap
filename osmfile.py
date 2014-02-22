@@ -1,6 +1,6 @@
 
 import os
-import trianglecollision
+from pyshull import trianglecollision
 import xml.parsers.expat as expat
 from xml.sax.saxutils import escape, quoteattr
 from pyshull.earclipping import EarClipping
