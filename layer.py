@@ -11,7 +11,7 @@ class MapLayer(RelativeLayout):
 		self.lastTouch = None
 		self.tiles = {}
 		self.viewPos = (50.7, -1.3)
-		self.viewZoom = 12
+		self.viewZoom = 14
 		self.unscaledTileSize = 512
 		self.tileSize = metrics.dp(self.unscaledTileSize)
 		self.map = map.Map()

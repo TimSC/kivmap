@@ -330,7 +330,7 @@ class OsmObjToLinesAndPolys(object):
 
 					wayLines.append(('tripoly', objId, tags, (pts, triangles, ("wgs84",))))
 				else:
-					wayLines.append(('line', objId, tags, wayNodes))
+					wayLines.append(('line', objId, tags, (wayNodes, ("wgs84",))))
 
 		return wayLines
 

@@ -13,7 +13,7 @@ def Proj(lat_deg, lon_deg, projObjs):
 def DrawLine(obj, width, DrawCallback, projObjs, tileCode, tileZoom, dash_length = 1., dash_offset = 0.):
 
 	xyPairs = []
-	for node in obj:
+	for node in obj[0]:
 		nodePos = node[1]
 		if nodePos is None: continue #Missing node
 
