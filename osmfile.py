@@ -155,7 +155,7 @@ def MergeWayFragments(wayData):
 
 	return wayData
 
-def ProcessMultipoly(outerWays, innerWays):
+def ProcessMultipolyMultiOuterWays(outerWays, innerWays):
 	#Match corresponding outer and inner ways
 	outerWaysData = [way[0] for way in outerWays]
 	innerWaysData = [way[0] for way in innerWays]
@@ -217,6 +217,18 @@ def ProcessMultipoly(outerWays, innerWays):
 		finalTriangles.extend(modTris)
 
 	return (finalVertices, finalTriangles, ("wgs84",))
+
+def ProcessMultipolySingleOuterWay(outerWayData, innerWays):
+	innerWaysData = [way[0] for way in innerWays]
+
+	try:
+		o = IgnoreNull(ExtractLatLon(outerWayData))
+		ins = map(IgnoreNull, map(ExtractLatLon, innerWaysData))
+		pts, triangles = EarClipping(o, ins)
+	except Exception as err:
+		print "EarClipping error in multipoly:", err
+		return None, None
+	return pts, triangles
 
 def IgnoreNull(nodes):
 	filteredNodes = []
@@ -417,22 +429,15 @@ class OsmObjToLinesAndPolys(object):
 			#If there are multiple outer ways, sort into separate multipolygons
 			if len(outerWays) >= 2:
 				print "Multiple outer polygons with inner ways", objId
-				groupedPolys = ProcessMultipoly(outerWays, innerWays)
+				groupedPolys = ProcessMultipolyMultiOuterWays(outerWays, innerWays)
 				if len(groupedPolys) > 0:
 					wayLines.append(('tripoly', objId, tags, groupedPolys))
 
 			if len(outerWays) == 1:
 				#One outer way, with zero or multiple inner ways
-				outerWayData = outerWays[0][0]
-				innerWaysData = [way[0] for way in innerWays]
+				pts, triangles = ProcessMultipolySingleOuterWay(outerWays[0][0], innerWays)
+				if pts is None: continue
 
-				try:
-					o = IgnoreNull(ExtractLatLon(outerWayData))
-					ins = map(IgnoreNull, map(ExtractLatLon, innerWaysData))
-					pts, triangles = EarClipping(o, ins)
-				except Exception as err:
-					print "EarClipping error in multipoly:", err
-					continue
 				wayLines.append(('tripoly', objId, tags, (pts, triangles, ("wgs84",))))
 	
 			if len(outerWays) == 0: #Ignore shape if no outer way exists
