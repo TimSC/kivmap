@@ -1,6 +1,6 @@
 
 import os
-from pyshull import trianglecollision
+from pyshull import overlap
 import xml.parsers.expat as expat
 from xml.sax.saxutils import escape, quoteattr
 from pyshull.earclipping import EarClipping
@@ -178,7 +178,7 @@ def ProcessMultipolyMultiOuterWays(outerWays, innerWays):
 	for oNum, outerWayTri in enumerate(outerWaysTri):
 		matchIndices = []
 		for iNum, innerWayTri in enumerate(innerWaysTri):
-			coll = trianglecollision.DoPolyPolyCollision(outerWayTri[0], outerWayTri[1], 
+			coll = overlap.DoPolyPolyCollision(outerWayTri[0], outerWayTri[1], 
 				innerWayTri[0], innerWayTri[1])
 			if coll:
 				matchIndices.append(iNum)
