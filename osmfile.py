@@ -247,6 +247,17 @@ class OsmObjToLinesAndPolys(object):
 		bounds = (tl[1], br[0], br[1], tl[0])
 
 		wayLines = []
+		w = self.DoLinesAndPolys(osmParseObj, bounds)
+		wayLines.extend(w)
+		w2 = self.DoMultipolygons(osmParseObj, bounds)
+		wayLines.extend(w2)
+
+		return wayLines
+
+	def DoLinesAndPolys(self, osmParseObj, bounds):
+
+		#print "Lines and polygons"
+		wayLines = []
 		for objId in osmParseObj.ways:
 			w = osmParseObj.ways[objId]
 			tags = w[1]
@@ -309,6 +320,12 @@ class OsmObjToLinesAndPolys(object):
 				else:
 					wayLines.append(('line', objId, tags, wayNodes))
 
+		return wayLines
+
+	def DoMultipolygons(self, osmParseObj, bounds):
+		wayLines = []
+
+		#print "Processing multipolygons"
 		#Convert relations to multipolygons
 		for objId in osmParseObj.relations:
 			w = osmParseObj.relations[objId]
@@ -399,7 +416,7 @@ class OsmObjToLinesAndPolys(object):
 
 			#If there are multiple outer ways, sort into separate multipolygons
 			if len(outerWays) >= 2:
-				#print "Multiple outer polygons with inner ways", objId
+				print "Multiple outer polygons with inner ways", objId
 				groupedPolys = ProcessMultipoly(outerWays, innerWays)
 				if len(groupedPolys) > 0:
 					wayLines.append(('tripoly', objId, tags, groupedPolys))
@@ -420,7 +437,7 @@ class OsmObjToLinesAndPolys(object):
 	
 			if len(outerWays) == 0: #Ignore shape if no outer way exists
 				continue
-
+		#print "done"
 
 		return wayLines
 
