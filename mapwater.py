@@ -26,7 +26,7 @@ class MapWater(object):
 		#print "draw layer", layer
 		#print "bounds", bounds
 
-		water = self.source.GetWater(tileCode, zoom, hints)
+		water, projInfo = self.source.GetWater(tileCode, zoom, hints)
 		#print "len water", len(water)	
 
 		typeDict = {}
@@ -85,9 +85,9 @@ class MapWater(object):
 				DrawCallback(col)
 
 				if shapeType == "line":
-					graphics.DrawLine(wayNodes, width, DrawCallback, projObjs, tileCode, zoom)
+					graphics.DrawLine(wayNodes, width, DrawCallback, projObjs, tileCode, zoom, projInfo)
 				if shapeType == "tripoly":
-					graphics.DrawTriPoly(wayNodes, width, DrawCallback, projObjs, tileCode, zoom)
+					graphics.DrawTriPoly(wayNodes, width, DrawCallback, projObjs, tileCode, zoom, projInfo)
 
 
 		return []

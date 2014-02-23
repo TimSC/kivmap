@@ -51,7 +51,7 @@ class MapHighways(object):
 		#print "draw layer", layer
 		#print "bounds", bounds
 
-		highwayNetwork = self.source.GetHighwayNetwork(tileCode, zoom, hints)
+		highwayNetwork, projInfo = self.source.GetHighwayNetwork(tileCode, zoom, hints)
 		#print "len highwayNetwork", len(highwayNetwork)	
 
 		highwayTypeDict = {}
@@ -106,9 +106,9 @@ class MapHighways(object):
 				DrawCallback(col)
 
 				if shapeType == "line":
-					graphics.DrawLine(wayNodes, width, DrawCallback, projObjs, tileCode, zoom, dash_length, dash_offset)
+					graphics.DrawLine(wayNodes, width, DrawCallback, projObjs, tileCode, zoom, projInfo, dash_length, dash_offset)
 				if shapeType == "tripoly":
-					graphics.DrawTriPoly(wayNodes, width, DrawCallback, projObjs, tileCode, zoom)
+					graphics.DrawTriPoly(wayNodes, width, DrawCallback, projObjs, tileCode, zoom, projInfo)
 		return []
 
 	def SetSource(self, source):

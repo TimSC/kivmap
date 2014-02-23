@@ -39,7 +39,7 @@ class MapLandscape(object):
 		#print "draw layer", layer
 		#print "bounds", bounds
 
-		objs = self.source.GetLandscape(tileCode, zoom, hints)
+		objs, projInfo = self.source.GetLandscape(tileCode, zoom, hints)
 		#print "len objs", len(objs)
 
 		typeDict = {}
@@ -100,9 +100,9 @@ class MapLandscape(object):
 				DrawCallback(col)
 
 				if shapeType == "line":
-					graphics.DrawLine(wayNodes, width, DrawCallback, projObjs, tileCode, zoom)
+					graphics.DrawLine(wayNodes, width, DrawCallback, projObjs, tileCode, zoom, projInfo)
 				if shapeType == "tripoly":
-					graphics.DrawTriPoly(wayNodes, width, DrawCallback, projObjs, tileCode, zoom)
+					graphics.DrawTriPoly(wayNodes, width, DrawCallback, projObjs, tileCode, zoom, projInfo)
 
 		return []
 

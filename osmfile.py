@@ -220,7 +220,7 @@ def ProcessMultipolyMultiOuterWays(outerWays, innerWays):
 	for p in IgnoreNull(finalVertices):
 		tilePos.extend(wgs84proj.Proj(*p))
 
-	return (tilePos, finalTriangles, ("tile", wgs84proj.tileWidth, wgs84proj.tileHeight))
+	return (tilePos, finalTriangles)
 
 def ProcessMultipolySingleOuterWay(outerWayData, innerWays):
 	innerWaysData = [way[0] for way in innerWays]
@@ -270,7 +270,7 @@ class OsmObjToLinesAndPolys(object):
 		w2 = self.DoMultipolygons(osmParseObj, bounds, wgs84proj)
 		wayLines.extend(w2)
 
-		return wayLines
+		return wayLines, ("tile", wgs84proj.tileWidth, wgs84proj.tileHeight)
 
 	def DoLinesAndPolys(self, osmParseObj, bounds, wgs84proj):
 
@@ -338,13 +338,13 @@ class OsmObjToLinesAndPolys(object):
 					for p in IgnoreNull(pts):
 						tilePos.extend(wgs84proj.Proj(*p))
 
-					wayLines.append(('tripoly', objId, tags, (tilePos, triangles, ("tile", wgs84proj.tileWidth, wgs84proj.tileHeight))))
+					wayLines.append(('tripoly', objId, tags, (tilePos, triangles)))
 				else:
 					latLons = [p[1] for p in wayNodes]
 					tilePos = []
 					for p in IgnoreNull(latLons):
 						tilePos.extend(wgs84proj.Proj(*p))
-					wayLines.append(('line', objId, tags, (tilePos, ("tile", wgs84proj.tileWidth, wgs84proj.tileHeight))))
+					wayLines.append(('line', objId, tags, (tilePos, )))
 
 		return wayLines
 
@@ -456,7 +456,7 @@ class OsmObjToLinesAndPolys(object):
 				for p in IgnoreNull(pts):
 					tilePos.extend(wgs84proj.Proj(*p))
 
-				wayLines.append(('tripoly', objId, tags, (tilePos, triangles, ("tile", wgs84proj.tileWidth, wgs84proj.tileHeight))))
+				wayLines.append(('tripoly', objId, tags, (tilePos, triangles)))
 	
 			if len(outerWays) == 0: #Ignore shape if no outer way exists
 				continue
@@ -545,8 +545,8 @@ class OsmFile(object):
 
 		osmObjToLinesAndPolys = OsmObjToLinesAndPolys()
 		osmObjToLinesAndPolys.AddTagOfInterest('highway',"*")
-		shapes = osmObjToLinesAndPolys.Do(self.osmParse, tileCode, tileZoom)
-		return shapes
+		shapes, projInfo = osmObjToLinesAndPolys.Do(self.osmParse, tileCode, tileZoom)
+		return shapes, projInfo
 
 	def GetRailNetwork(self, tileCode=None, hints={}):
 		pass
@@ -556,15 +556,15 @@ class OsmFile(object):
 		osmObjToLinesAndPolys.AddTagOfInterest('waterway',"*")
 		osmObjToLinesAndPolys.AddTagOfInterest('water',"*")
 		osmObjToLinesAndPolys.AddTagOfInterest('natural',"coastline", 0)
-		shapes = osmObjToLinesAndPolys.Do(self.osmParse, tileCode, tileZoom)
-		return shapes
+		shapes, projInfo = osmObjToLinesAndPolys.Do(self.osmParse, tileCode, tileZoom)
+		return shapes, projInfo
 
 	def GetLandscape(self, tileCode=None, tileZoom=12, hints={}):
 		osmObjToLinesAndPolys = OsmObjToLinesAndPolys()
 		osmObjToLinesAndPolys.AddTagOfInterest('landuse',"*")
 		osmObjToLinesAndPolys.AddTagOfInterest('natural',"wood")
-		shapes = osmObjToLinesAndPolys.Do(self.osmParse, tileCode, tileZoom)
-		return shapes
+		shapes, projInfo = osmObjToLinesAndPolys.Do(self.osmParse, tileCode, tileZoom)
+		return shapes, projInfo
 
 	def GetContours(self, tileCode=None, tileZoom=12, hints={}):
 		pass

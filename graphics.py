@@ -10,10 +10,10 @@ def Proj(lat_deg, lon_deg, projObjs):
 	ProjFunc = projObjs['wgs84']
 	return ProjFunc(lat_deg, lon_deg)
 
-def DrawLine(obj, width, DrawCallback, projObjs, tileCode, tileZoom, dash_length = 1., dash_offset = 0.):
+def DrawLine(obj, width, DrawCallback, projObjs, tileCode, tileZoom, projInfo, dash_length = 1., dash_offset = 0.):
 
 	xyPairs = []
-	projCode = obj[1][0]
+	projCode = projInfo[0]
 
 	if projCode == "wgs84":
 		for node in obj[0]:
@@ -26,8 +26,8 @@ def DrawLine(obj, width, DrawCallback, projObjs, tileCode, tileZoom, dash_length
 
 	if projCode == "tile":
 		tileSize = projObjs['tile_size']
-		dataResolutionWidth = obj[1][1]
-		dataResolutionHeight = obj[1][2]
+		dataResolutionWidth = projInfo[1]
+		dataResolutionHeight = projInfo[2]
 
 		xyPairs = []
 		pts = obj[0]
@@ -45,10 +45,10 @@ def DrawLine(obj, width, DrawCallback, projObjs, tileCode, tileZoom, dash_length
 		li.dash_offset = 10.
 	DrawCallback(li)
 
-def DrawTriPoly(obj, width, DrawCallback, projObjs, tileCode, tileZoom):
+def DrawTriPoly(obj, width, DrawCallback, projObjs, tileCode, tileZoom, projInfo):
 
 	vertices2 = []
-	projCode = obj[2][0]
+	projCode = projInfo[0]
 
 	if projCode == "wgs84":
 		for nodePos in obj[0]:
@@ -59,16 +59,14 @@ def DrawTriPoly(obj, width, DrawCallback, projObjs, tileCode, tileZoom):
 
 	if projCode == "tile":
 		tileSize = projObjs['tile_size']
-		dataResolutionWidth = obj[2][1]
-		dataResolutionHeight = obj[2][2]
+		dataResolutionWidth = projInfo[1]
+		dataResolutionHeight = projInfo[2]
 
 		pts = obj[0]
 		for i in range(0, len(pts), 2):
 			vertices2.extend((pts[i] * tileSize[0] / dataResolutionWidth, pts[i+1] * tileSize[1] / dataResolutionHeight))
 
 	triangles = obj[1]
-	dataProj = obj[2]
-	#print dataProj
 
 	#print triangles
 	for tri in triangles:
