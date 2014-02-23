@@ -8,6 +8,7 @@ import graphics
 class MapWater(object):
 	def __init__(self):
 		self.source = None
+		self.filter = None
 
 		self.drawOrder = ['coastline', 'water', 'river', 'stream', 'canal']
 
@@ -27,7 +28,7 @@ class MapWater(object):
 		#print "draw layer", layer
 		#print "bounds", bounds
 
-		water, projInfo = self.source.GetWater(tileCode, zoom, hints)
+		water, projInfo = self.filter.Do(tileCode, zoom, hints)
 		#print "len water", len(water)	
 
 		#Linear scaling to fix tile widget
@@ -104,4 +105,11 @@ class MapWater(object):
 	def SetSource(self, source):
 		self.source = source
 
+		self.filter = self.source.GetQuery("landscape")
+		if self.filter is None:
+			self.filter = self.source.CreateQuery("landscape")
+
+		self.filter.AddTagOfInterest('waterway',"*")
+		self.filter.AddTagOfInterest('water',"*")
+		self.filter.AddTagOfInterest('natural',"coastline", 0)
 

@@ -254,7 +254,7 @@ class OsmObjToLinesAndPolys(object):
 			self.tagsOfInterest[key] = []
 		self.tagsOfInterest[key].append((val, area))
 
-	def Do(self, osmParseObj, tileCode, tileZoom, resolution = 1024):
+	def Do(self, osmParseObj, tileCode, tileZoom, resolution = 512):
 
 		tl = slippy.num2deg(tileCode[0], tileCode[1], tileZoom)
 		#tileResolution = 512
@@ -518,8 +518,22 @@ class OsmParse(object):
 		self.tags.pop()
 		self.attr.pop()
 
+class OsmFileQuery(object):
+	def __init__(self, parent, name):
+		self.parent = parent
+		self.name = name
+		self.filter = OsmObjToLinesAndPolys()
+
+	def AddTagOfInterest(self, key, val, area = None):
+		self.filter.AddTagOfInterest(key, val, area)
+
+	def Do(self, tileCode, tileZoom, hints):
+		shapes, projInfo = self.filter.Do(self.parent.osmParse, tileCode, tileZoom)
+		return shapes, projInfo
+
 class OsmFile(object):
 	def __init__(self, fina):
+		self.queries = {}
 		fi = None
 		finaSplit = os.path.splitext(fina)
 		if bz2Available and finaSplit[1] == ".bz2":
@@ -541,37 +555,15 @@ class OsmFile(object):
 			len(self.osmParse.ways),
 			len(self.osmParse.relations))
 
-	def GetHighwayNetwork(self, tileCode=None, tileZoom=12, hints={}):
+	def CreateQuery(self, name):
+		q = OsmFileQuery(self, name)
+		self.queries[name] = q
+		return q
 
-		osmObjToLinesAndPolys = OsmObjToLinesAndPolys()
-		osmObjToLinesAndPolys.AddTagOfInterest('highway',"*")
-		shapes, projInfo = osmObjToLinesAndPolys.Do(self.osmParse, tileCode, tileZoom)
-		return shapes, projInfo
-
-	def GetRailNetwork(self, tileCode=None, hints={}):
-		pass
-
-	def GetWater(self, tileCode=None, tileZoom=12, hints={}):
-		osmObjToLinesAndPolys = OsmObjToLinesAndPolys()
-		osmObjToLinesAndPolys.AddTagOfInterest('waterway',"*")
-		osmObjToLinesAndPolys.AddTagOfInterest('water',"*")
-		osmObjToLinesAndPolys.AddTagOfInterest('natural',"coastline", 0)
-		shapes, projInfo = osmObjToLinesAndPolys.Do(self.osmParse, tileCode, tileZoom)
-		return shapes, projInfo
-
-	def GetLandscape(self, tileCode=None, tileZoom=12, hints={}):
-		osmObjToLinesAndPolys = OsmObjToLinesAndPolys()
-		osmObjToLinesAndPolys.AddTagOfInterest('landuse',"*")
-		osmObjToLinesAndPolys.AddTagOfInterest('natural',"wood")
-		shapes, projInfo = osmObjToLinesAndPolys.Do(self.osmParse, tileCode, tileZoom)
-		return shapes, projInfo
-
-	def GetContours(self, tileCode=None, tileZoom=12, hints={}):
-		pass
-
-	def GetInfrastructure(self, tileCode=None, tileZoom=12, hints={}):
-		pass
-
+	def GetQuery(self, name):
+		if name not in self.queries:
+			return None
+		return self.queries[name]
 
 if __name__ == "__main__":
 	

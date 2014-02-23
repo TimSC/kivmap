@@ -8,6 +8,7 @@ import graphics
 class MapHighways(object):
 	def __init__(self):
 		self.source = None
+		self.filter = None
 
 		self.highwayDrawOrder = ['motorway', 'trunk', 'primary', 'secondary',
 			'tertiary', 'unclassified', 'residential', 'service', 
@@ -52,7 +53,7 @@ class MapHighways(object):
 		#print "draw layer", layer
 		#print "bounds", bounds
 
-		highwayNetwork, projInfo = self.source.GetHighwayNetwork(tileCode, zoom, hints)
+		highwayNetwork, projInfo = self.filter.Do(tileCode, zoom, hints)
 		#print "len highwayNetwork", len(highwayNetwork)	
 
 		#Linear scaling to fix tile widget
@@ -125,4 +126,9 @@ class MapHighways(object):
 	def SetSource(self, source):
 		self.source = source
 
+		self.filter = self.source.GetQuery("highways")
+		if self.filter is None:
+			self.filter = self.source.CreateQuery("highways")
+		self.filter.AddTagOfInterest('highway',"*")
+		
 

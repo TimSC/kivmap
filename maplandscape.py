@@ -8,6 +8,7 @@ import graphics
 class MapLandscape(object):
 	def __init__(self):
 		self.source = None
+		self.filter = None
 
 		self.drawOrder = ['residential', 'retail', 'residential', 'recreation_ground', 'industrial',
 			'greenfield', 'cemetery', 'brownfield', 'allotments', 'landfill', 'forest', 'construction'
@@ -40,14 +41,13 @@ class MapLandscape(object):
 		#print "draw layer", layer
 		#print "bounds", bounds
 
-		objs, projInfo = self.source.GetLandscape(tileCode, zoom, hints)
+		objs, projInfo = self.filter.Do(tileCode, zoom, hints)
 		#print "len objs", len(objs)
 		
 		#Linear scaling to fix tile widget
 		if projInfo[0] == "tile":
 			DrawCallback(PushMatrix())
 			tileSize = projObjs['tile_size']
-			print tileSize, projInfo
 			DrawCallback(Scale(tileSize[0]/projInfo[1], tileSize[1]/projInfo[2], 1.))
 
 		typeDict = {}
@@ -120,4 +120,12 @@ class MapLandscape(object):
 	def SetSource(self, source):
 		self.source = source
 
+		self.filter = self.source.GetQuery("landscape")
+		if self.filter is None:
+			self.filter = self.source.CreateQuery("landscape")
+
+		self.filter.AddTagOfInterest('landuse',"*")
+		self.filter.AddTagOfInterest('natural',"wood")
+
+	
 
