@@ -28,14 +28,7 @@ def DrawLine(obj, width, DrawCallback, projObjs, tileCode, tileZoom, projInfo, d
 		tileSize = projObjs['tile_size']
 		dataResolutionWidth = projInfo[1]
 		dataResolutionHeight = projInfo[2]
-
-		xyPairs = []
-		pts = obj[0]
-		for i in range(0, len(pts), 2):
-			xyPairs.extend((pts[i] * tileSize[0] / dataResolutionWidth, pts[i+1] * tileSize[1] / dataResolutionHeight))
-
-
-		#xyPairs = obj[0]
+		xyPairs = obj[0]
 
 	li = Line(points=xyPairs, width=width)
 
@@ -61,10 +54,7 @@ def DrawTriPoly(obj, width, DrawCallback, projObjs, tileCode, tileZoom, projInfo
 		tileSize = projObjs['tile_size']
 		dataResolutionWidth = projInfo[1]
 		dataResolutionHeight = projInfo[2]
-
-		pts = obj[0]
-		for i in range(0, len(pts), 2):
-			vertices2.extend((pts[i] * tileSize[0] / dataResolutionWidth, pts[i+1] * tileSize[1] / dataResolutionHeight))
+		vertices2 = obj[0]
 
 	triangles = obj[1]
 

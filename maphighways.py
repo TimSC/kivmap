@@ -2,6 +2,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.graphics import Color, Ellipse, Line, Rectangle
+from kivy.graphics.context_instructions import Scale, PushMatrix, PopMatrix
 import graphics
 
 class MapHighways(object):
@@ -53,6 +54,12 @@ class MapHighways(object):
 
 		highwayNetwork, projInfo = self.source.GetHighwayNetwork(tileCode, zoom, hints)
 		#print "len highwayNetwork", len(highwayNetwork)	
+
+		#Linear scaling to fix tile widget
+		if projInfo[0] == "tile":
+			DrawCallback(PushMatrix())
+			tileSize = projObjs['tile_size']
+			DrawCallback(Scale(tileSize[0]/projInfo[1], tileSize[1]/projInfo[2], 1.))
 
 		highwayTypeDict = {}
 		for obj in highwayNetwork:
@@ -109,6 +116,10 @@ class MapHighways(object):
 					graphics.DrawLine(wayNodes, width, DrawCallback, projObjs, tileCode, zoom, projInfo, dash_length, dash_offset)
 				if shapeType == "tripoly":
 					graphics.DrawTriPoly(wayNodes, width, DrawCallback, projObjs, tileCode, zoom, projInfo)
+
+		if projInfo[0] == "tile":
+			DrawCallback(PopMatrix())
+
 		return []
 
 	def SetSource(self, source):

@@ -2,6 +2,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.graphics import Color, Ellipse, Line, Rectangle, Mesh, Triangle
+from kivy.graphics.context_instructions import Scale, PushMatrix, PopMatrix
 import graphics
 
 class MapLandscape(object):
@@ -41,6 +42,13 @@ class MapLandscape(object):
 
 		objs, projInfo = self.source.GetLandscape(tileCode, zoom, hints)
 		#print "len objs", len(objs)
+		
+		#Linear scaling to fix tile widget
+		if projInfo[0] == "tile":
+			DrawCallback(PushMatrix())
+			tileSize = projObjs['tile_size']
+			print tileSize, projInfo
+			DrawCallback(Scale(tileSize[0]/projInfo[1], tileSize[1]/projInfo[2], 1.))
 
 		typeDict = {}
 		for obj in objs:
@@ -103,6 +111,9 @@ class MapLandscape(object):
 					graphics.DrawLine(wayNodes, width, DrawCallback, projObjs, tileCode, zoom, projInfo)
 				if shapeType == "tripoly":
 					graphics.DrawTriPoly(wayNodes, width, DrawCallback, projObjs, tileCode, zoom, projInfo)
+
+		if projInfo[0] == "tile":
+			DrawCallback(PopMatrix())
 
 		return []
 
