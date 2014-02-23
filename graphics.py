@@ -13,14 +13,29 @@ def Proj(lat_deg, lon_deg, projObjs):
 def DrawLine(obj, width, DrawCallback, projObjs, tileCode, tileZoom, dash_length = 1., dash_offset = 0.):
 
 	xyPairs = []
-	for node in obj[0]:
-		nodePos = node[1]
-		if nodePos is None: continue #Missing node
+	projCode = obj[1][0]
 
-		x, y = Proj(nodePos[0], nodePos[1], projObjs)
-		#print nodePos, x, y
-		xyPairs.append(x)
-		xyPairs.append(y)
+	if projCode == "wgs84":
+		for node in obj[0]:
+			if nodePos is None: continue #Missing node
+
+			x, y = Proj(nodePos[0], nodePos[1], projObjs)
+			#print nodePos, x, y
+			xyPairs.append(x)
+			xyPairs.append(y)
+
+	if projCode == "tile":
+		tileSize = projObjs['tile_size']
+		dataResolutionWidth = obj[1][1]
+		dataResolutionHeight = obj[1][2]
+
+		xyPairs = []
+		pts = obj[0]
+		for i in range(0, len(pts), 2):
+			xyPairs.extend((pts[i] * tileSize[0] / dataResolutionWidth, pts[i+1] * tileSize[1] / dataResolutionHeight))
+
+
+		#xyPairs = obj[0]
 
 	li = Line(points=xyPairs, width=width)
 

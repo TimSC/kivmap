@@ -108,7 +108,7 @@ class TileView(StencilView):
 		br = slippy.num2deg(self.tileNum[0]+1, self.tileNum[1]+1, self.tileZoom)
 		wgs84proj = slippy.TileProj(self.tileNum[0], self.tileNum[1], self.tileZoom, self.size[0], self.size[1])
 		
-		projObjects = {"wgs84": wgs84proj.Proj}
+		projObjects = {"wgs84": wgs84proj.Proj, "tile_size": self.size}
 
 		self.map.Draw(self.tileNum, self.tileZoom, hints, self.DrawCallback, projObjects)
 		#bounds left,bottom,right,top

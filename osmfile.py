@@ -250,7 +250,7 @@ class OsmObjToLinesAndPolys(object):
 			self.tagsOfInterest[key] = []
 		self.tagsOfInterest[key].append((val, area))
 
-	def Do(self, osmParseObj, tileCode, tileZoom):
+	def Do(self, osmParseObj, tileCode, tileZoom, resolution = 1024):
 
 		tl = slippy.num2deg(tileCode[0], tileCode[1], tileZoom)
 		#tileResolution = 512
@@ -258,15 +258,17 @@ class OsmObjToLinesAndPolys(object):
 		#proj = slippy.TileProj(tileCode[0], tileCode[1], tileZoom, tileResolution, tileResolution)
 		bounds = (tl[1], br[0], br[1], tl[0])
 
+		wgs84proj = slippy.TileProj(tileCode[0], tileCode[1], tileZoom, resolution, resolution)
+
 		wayLines = []
-		w = self.DoLinesAndPolys(osmParseObj, bounds)
+		w = self.DoLinesAndPolys(osmParseObj, bounds, wgs84proj)
 		wayLines.extend(w)
-		w2 = self.DoMultipolygons(osmParseObj, bounds)
+		w2 = self.DoMultipolygons(osmParseObj, bounds, wgs84proj)
 		wayLines.extend(w2)
 
 		return wayLines
 
-	def DoLinesAndPolys(self, osmParseObj, bounds):
+	def DoLinesAndPolys(self, osmParseObj, bounds, wgs84proj):
 
 		#print "Lines and polygons"
 		wayLines = []
@@ -330,11 +332,15 @@ class OsmObjToLinesAndPolys(object):
 
 					wayLines.append(('tripoly', objId, tags, (pts, triangles, ("wgs84",))))
 				else:
-					wayLines.append(('line', objId, tags, (wayNodes, ("wgs84",))))
+					latLons = [p[1] for p in wayNodes]
+					tilePos = []
+					for p in IgnoreNull(latLons):
+						tilePos.extend(wgs84proj.Proj(*p))
+					wayLines.append(('line', objId, tags, (tilePos, ("tile", wgs84proj.tileWidth, wgs84proj.tileHeight))))
 
 		return wayLines
 
-	def DoMultipolygons(self, osmParseObj, bounds):
+	def DoMultipolygons(self, osmParseObj, bounds, wgs84proj):
 		wayLines = []
 
 		#print "Processing multipolygons"
