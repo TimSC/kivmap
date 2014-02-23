@@ -48,11 +48,23 @@ def DrawLine(obj, width, DrawCallback, projObjs, tileCode, tileZoom, dash_length
 def DrawTriPoly(obj, width, DrawCallback, projObjs, tileCode, tileZoom):
 
 	vertices2 = []
-	for nodePos in obj[0]:
-		if nodePos is None: continue #Missing node
-		#print nodePos
-		x, y = Proj(nodePos[0], nodePos[1], projObjs)
-		vertices2.append((x, y))
+	projCode = obj[2][0]
+
+	if projCode == "wgs84":
+		for nodePos in obj[0]:
+			if nodePos is None: continue #Missing node
+			#print nodePos
+			x, y = Proj(nodePos[0], nodePos[1], projObjs)
+			vertices2.extend((x, y))
+
+	if projCode == "tile":
+		tileSize = projObjs['tile_size']
+		dataResolutionWidth = obj[2][1]
+		dataResolutionHeight = obj[2][2]
+
+		pts = obj[0]
+		for i in range(0, len(pts), 2):
+			vertices2.extend((pts[i] * tileSize[0] / dataResolutionWidth, pts[i+1] * tileSize[1] / dataResolutionHeight))
 
 	triangles = obj[1]
 	dataProj = obj[2]
@@ -61,13 +73,13 @@ def DrawTriPoly(obj, width, DrawCallback, projObjs, tileCode, tileZoom):
 	#print triangles
 	for tri in triangles:
 		for ptNum in tri:
-			if ptNum < 0 or ptNum >= len(vertices2):
-				raise Exception("Out of bounds vertex index")
+			if 2*ptNum < 0 or 2*ptNum+1 >= len(vertices2):
+				raise Exception("Out of bounds vertex index "+str(ptNum)+","+str(len(vertices2)))
 
 	for tri in triangles:
 		triPos = []
 		for p in tri:
-			triPos.extend(list(vertices2[p]))
+			triPos.extend((vertices2[2*p], vertices2[2*p+1]))
 
 		poly = Triangle(points = triPos)
 		DrawCallback(poly)

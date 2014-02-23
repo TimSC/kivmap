@@ -216,7 +216,11 @@ def ProcessMultipolyMultiOuterWays(outerWays, innerWays):
 		finalVertices.extend(pts)
 		finalTriangles.extend(modTris)
 
-	return (finalVertices, finalTriangles, ("wgs84",))
+	tilePos = []
+	for p in IgnoreNull(finalVertices):
+		tilePos.extend(wgs84proj.Proj(*p))
+
+	return (tilePos, finalTriangles, ("tile", wgs84proj.tileWidth, wgs84proj.tileHeight))
 
 def ProcessMultipolySingleOuterWay(outerWayData, innerWays):
 	innerWaysData = [way[0] for way in innerWays]
@@ -330,7 +334,11 @@ class OsmObjToLinesAndPolys(object):
 						print "EarClipping error:", err
 						continue
 
-					wayLines.append(('tripoly', objId, tags, (pts, triangles, ("wgs84",))))
+					tilePos = []
+					for p in IgnoreNull(pts):
+						tilePos.extend(wgs84proj.Proj(*p))
+
+					wayLines.append(('tripoly', objId, tags, (tilePos, triangles, ("tile", wgs84proj.tileWidth, wgs84proj.tileHeight))))
 				else:
 					latLons = [p[1] for p in wayNodes]
 					tilePos = []
@@ -444,7 +452,11 @@ class OsmObjToLinesAndPolys(object):
 				pts, triangles = ProcessMultipolySingleOuterWay(outerWays[0][0], innerWays)
 				if pts is None: continue
 
-				wayLines.append(('tripoly', objId, tags, (pts, triangles, ("wgs84",))))
+				tilePos = []
+				for p in IgnoreNull(pts):
+					tilePos.extend(wgs84proj.Proj(*p))
+
+				wayLines.append(('tripoly', objId, tags, (tilePos, triangles, ("tile", wgs84proj.tileWidth, wgs84proj.tileHeight))))
 	
 			if len(outerWays) == 0: #Ignore shape if no outer way exists
 				continue
