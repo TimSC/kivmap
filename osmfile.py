@@ -528,32 +528,39 @@ class OsmFileQuery(object):
 		self.filter.AddTagOfInterest(key, val, area)
 
 	def Do(self, tileCode, tileZoom, hints):
-		shapes, projInfo = self.filter.Do(self.parent.osmParse, tileCode, tileZoom)
+		shapes, projInfo = self.filter.Do(self.parent.GetParsedData(), tileCode, tileZoom)
 		return shapes, projInfo
 
 class OsmFile(object):
 	def __init__(self, fina):
 		self.queries = {}
-		fi = None
+		self.fi = None
+		self.osmParse = None
 		finaSplit = os.path.splitext(fina)
 		if bz2Available and finaSplit[1] == ".bz2":
-			fi = bz2.BZ2File(fina)
+			self.fi = bz2.BZ2File(fina)
 		if gzipAvailable and finaSplit[1] == ".gz":
-			fi = gzip.GzipFile(fina)
+			self.fi = gzip.GzipFile(fina)
 		if zipAvailable and finaSplit[1] == ".zip":
-			fi = zipfile.ZipFile(fina)
+			self.fi = zipfile.ZipFile(fina)
 
 		if finaSplit[1] == ".osm":
-			fi = open(fina, "rt")
-		if fi is None:
+			self.fi = open(fina, "rt")
+		if self.fi is None:
 			raise Exception ("Unknown file extension "+str(finaSplit[1]))
 		
+	def GetParsedData(self):
+		if self.osmParse is not None:
+			return self.osmParse
+
 		self.osmParse = OsmParse()
-		self.osmParse.ParseFile(fi)
+		self.osmParse.ParseFile(self.fi)
 
 		print "Read {0} nodes, {1} ways, {2} relations".format(len(self.osmParse.nodes),
 			len(self.osmParse.ways),
 			len(self.osmParse.relations))
+
+		return self.osmParse
 
 	def CreateQuery(self, name):
 		q = OsmFileQuery(self, name)
