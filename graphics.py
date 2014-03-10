@@ -44,12 +44,21 @@ def TriPointPos(pts, tri):
 		triPos.extend((pts[2*p], pts[2*p+1]))
 	return triPos
 
-def DrawTris(vertices2, triangles, DrawCallback):
+def DrawTris(vertices, triangles, DrawCallback):
+	
+	#Arrange data in kivy internal mesh format
+	vertMod = []
+	for i in range(len(vertices)/2):
+		vertMod.extend((vertices[i*2], vertices[(i*2)+1], 0., 0.))
+	ind = []
 	for tri in triangles:
-		triPos = TriPointPos(vertices2, tri)
-
-		poly = Triangle(points = triPos)
-		DrawCallback(poly)
+		ind.extend(tri)
+	
+	mesh = Mesh()
+	mesh.vertices = vertMod
+	mesh.indices = ind
+	mesh.mode = "triangles"
+	DrawCallback(mesh)
 
 def DrawTriPoly(obj, width, DrawCallback, projObjs, tileCode, tileZoom, projInfo):
 
