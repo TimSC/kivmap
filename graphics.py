@@ -38,6 +38,19 @@ def DrawLine(obj, width, DrawCallback, projObjs, tileCode, tileZoom, projInfo, d
 		li.dash_offset = 10.
 	DrawCallback(li)
 
+def TriPointPos(pts, tri):
+	triPos = []
+	for p in tri:
+		triPos.extend((pts[2*p], pts[2*p+1]))
+	return triPos
+
+def DrawTris(vertices2, triangles, DrawCallback):
+	for tri in triangles:
+		triPos = TriPointPos(vertices2, tri)
+
+		poly = Triangle(points = triPos)
+		DrawCallback(poly)
+
 def DrawTriPoly(obj, width, DrawCallback, projObjs, tileCode, tileZoom, projInfo):
 
 	vertices2 = []
@@ -59,16 +72,12 @@ def DrawTriPoly(obj, width, DrawCallback, projObjs, tileCode, tileZoom, projInfo
 	triangles = obj[1]
 
 	#print triangles
-	for tri in triangles:
-		for ptNum in tri:
-			if 2*ptNum < 0 or 2*ptNum+1 >= len(vertices2):
-				raise Exception("Out of bounds vertex index "+str(ptNum)+","+str(len(vertices2)))
+	indexCheck = False
+	if indexCheck:
+		for tri in triangles:
+			for ptNum in tri:
+				if 2*ptNum < 0 or 2*ptNum+1 >= len(vertices2):
+					raise Exception("Out of bounds vertex index "+str(ptNum)+","+str(len(vertices2)))
 
-	for tri in triangles:
-		triPos = []
-		for p in tri:
-			triPos.extend((vertices2[2*p], vertices2[2*p+1]))
-
-		poly = Triangle(points = triPos)
-		DrawCallback(poly)
+	DrawTris(vertices2, triangles, DrawCallback)
 
