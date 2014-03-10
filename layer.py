@@ -3,7 +3,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.relativelayout import RelativeLayout
 import kivy.metrics as metrics
 from kivy.clock import Clock
-import tile, slippy, osmfilecached, map, maphighways, mapwater, maplandscape
+import tile, slippy, osmfilecached, map, maphighways, mapwater, maplandscape, mapplaces
 
 class MapLayer(RelativeLayout):
 	def __init__(self, **args):
@@ -26,6 +26,10 @@ class MapLayer(RelativeLayout):
 		water = mapwater.MapWater()
 		water.SetSource(source)
 		self.map.AddPlugin(water)
+
+		places = mapplaces.MapPlaces()
+		places.SetSource(source)
+		self.map.AddPlugin(places)
 
 		landscape = maplandscape.MapLandscape()
 		landscape.SetSource(source)

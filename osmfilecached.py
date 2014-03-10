@@ -4,6 +4,7 @@ import osmfile, pickle, os
 class OsmFileQueryCached(osmfile.OsmFileQuery):
 	def __init__(self, parent, name):
 		osmfile.OsmFileQuery.__init__(self, parent, name)
+		self.storeResultsInCache = True
 
 	def AddTagOfInterest(self, key, val, area = None):
 		osmfile.OsmFileQuery.AddTagOfInterest(self, key, val, area = None)
@@ -16,9 +17,11 @@ class OsmFileQueryCached(osmfile.OsmFileQuery):
 			return pickle.load(open(cacheFilename, "rb"))
 
 		queryResult = osmfile.OsmFileQuery.Do(self, tileCode, tileZoom, hints)
-		if not os.path.exists("cache"):
-			os.mkdir("cache")
-		pickle.dump(queryResult, open(cacheFilename, "wb"))
+
+		if self.storeResultsInCache:
+			if not os.path.exists("cache"):
+				os.mkdir("cache")
+			pickle.dump(queryResult, open(cacheFilename, "wb"))
 		return queryResult
 
 class OsmFileCached(osmfile.OsmFile):

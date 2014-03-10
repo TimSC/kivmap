@@ -74,8 +74,8 @@ def WayNodesInRoi(wayNodes, bounds):
 			continue
 
 		if wayInRoi is False and bounds is not None and \
-			node[1][0] >= bounds[1] and node[1][0] < bounds[3] and \
-			node[1][1] >= bounds[0] and node[1][1] < bounds[2]: 
+			node[1][0] > bounds[1] and node[1][0] < bounds[3] and \
+			node[1][1] > bounds[0] and node[1][1] < bounds[2]: 
 				
 			wayInRoi = True	
 	return wayInRoi
@@ -265,12 +265,59 @@ class OsmObjToLinesAndPolys(object):
 		wgs84proj = slippy.TileProj(tileCode[0], tileCode[1], tileZoom, resolution, resolution)
 
 		wayLines = []
+		w = self.DoPoints(osmParseObj, bounds, wgs84proj)
+		wayLines.extend(w)
 		w = self.DoLinesAndPolys(osmParseObj, bounds, wgs84proj)
 		wayLines.extend(w)
 		w2 = self.DoMultipolygons(osmParseObj, bounds, wgs84proj)
 		wayLines.extend(w2)
 
 		return wayLines, ("tile", wgs84proj.tileWidth, wgs84proj.tileHeight)
+
+
+	def DoPoints(self, osmParseObj, bounds, wgs84proj):
+
+		print "Nodes"
+		objNodes = []
+		for objId in osmParseObj.nodes:
+			n = osmParseObj.nodes[objId]
+			attribs = n[0]
+			tags = n[1]
+			ofInterest = False
+			
+			for tagOfInterest in self.tagsOfInterest:
+				if tagOfInterest in tags:
+					searchVal = self.tagsOfInterest[tagOfInterest]
+
+					for val, valArea in searchVal:
+						if "*" == val:
+							ofInterest = True
+							foundAreaVal = valArea
+						if tags[tagOfInterest] == val:
+							ofInterest = True
+							foundAreaVal = valArea
+
+			if not ofInterest:
+				continue
+
+			lat = float(attribs['lat'])
+			lon = float(attribs['lon'])
+
+			nodeInRoi = None
+			if bounds is not None:
+				if lat > bounds[1] and lat < bounds[3] and \
+					lon > bounds[0] and lon < bounds[2]: 
+					nodeInRoi = True
+				else:
+					nodeInRoi = False
+			
+			#print objId, tags, w[2], wayNodes
+
+			if nodeInRoi is True or bounds is None:
+				tilePos = wgs84proj.Proj(lat, lon)
+				objNodes.append(('nodes', objId, tags, (tilePos, )))
+
+		return objNodes
 
 	def DoLinesAndPolys(self, osmParseObj, bounds, wgs84proj):
 
