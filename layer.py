@@ -3,7 +3,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.relativelayout import RelativeLayout
 import kivy.metrics as metrics
 from kivy.clock import Clock
-import tile, slippy, osmfile, map, maphighways, mapwater, maplandscape
+import tile, slippy, osmfilecached, map, maphighways, mapwater, maplandscape
 
 class MapLayer(RelativeLayout):
 	def __init__(self, **args):
@@ -17,7 +17,7 @@ class MapLayer(RelativeLayout):
 		self.map = map.Map()
 
 		#source = osmfile.OsmFile("Simple.osm.gz")
-		source = osmfile.OsmFile("IsleOfWight-Fosm-Oct2013.osm.gz")
+		source = osmfilecached.OsmFileCached("IsleOfWight-Fosm-Oct2013.osm.gz")
 
 		highways = maphighways.MapHighways()
 		highways.SetSource(source)
