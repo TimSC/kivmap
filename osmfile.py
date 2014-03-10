@@ -365,6 +365,23 @@ class OsmObjToLinesAndPolys(object):
 					continue
 			else:
 				continue
+
+			ofInterest = False
+			
+			for tagOfInterest in self.tagsOfInterest:
+				if tagOfInterest in tags:
+					searchVal = self.tagsOfInterest[tagOfInterest]
+
+					for val, valArea in searchVal:
+						if "*" == val:
+							ofInterest = True
+							foundAreaVal = valArea
+						if tags[tagOfInterest] == val:
+							ofInterest = True
+							foundAreaVal = valArea
+
+			if not ofInterest:
+				continue
 			
 			innerWayMembers = []
 			outerWayMembers = []
