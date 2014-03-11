@@ -254,7 +254,7 @@ class OsmObjToLinesAndPolys(object):
 			self.tagsOfInterest[key] = []
 		self.tagsOfInterest[key].append((val, area))
 
-	def Do(self, osmParseObj, tileCode, tileZoom, resolution = 512):
+	def Do(self, osmParseObj, tileCode, tileZoom, proj, resolution = 512):
 
 		tl = slippy.num2deg(tileCode[0], tileCode[1], tileZoom)
 		#tileResolution = 512
@@ -265,17 +265,17 @@ class OsmObjToLinesAndPolys(object):
 		wgs84proj = slippy.TileProj(tileCode[0], tileCode[1], tileZoom, resolution, resolution)
 
 		wayLines = []
-		w = self.DoPoints(osmParseObj, bounds, wgs84proj)
+		w = self.DoPoints(osmParseObj, bounds, wgs84proj, proj)
 		wayLines.extend(w)
-		w = self.DoLinesAndPolys(osmParseObj, bounds, wgs84proj)
+		w = self.DoLinesAndPolys(osmParseObj, bounds, wgs84proj, proj)
 		wayLines.extend(w)
-		w2 = self.DoMultipolygons(osmParseObj, bounds, wgs84proj)
+		w2 = self.DoMultipolygons(osmParseObj, bounds, wgs84proj, proj)
 		wayLines.extend(w2)
 
 		return wayLines, ("tile", wgs84proj.tileWidth, wgs84proj.tileHeight)
 
 
-	def DoPoints(self, osmParseObj, bounds, wgs84proj):
+	def DoPoints(self, osmParseObj, bounds, wgs84proj, proj):
 
 		print "Nodes"
 		objNodes = []
@@ -314,12 +314,15 @@ class OsmObjToLinesAndPolys(object):
 			#print objId, tags, w[2], wayNodes
 
 			if nodeInRoi is True or bounds is None:
-				tilePos = wgs84proj.Proj(lat, lon)
-				objNodes.append(('nodes', objId, tags, (tilePos, )))
+				if proj == "tile":
+					tilePos = wgs84proj.Proj(lat, lon)
+					objNodes.append(('nodes', objId, tags, (tilePos, )))
+				if proj == "wgs84":
+					objNodes.append(('nodes', objId, tags, ((lat, lon), )))
 
 		return objNodes
 
-	def DoLinesAndPolys(self, osmParseObj, bounds, wgs84proj):
+	def DoLinesAndPolys(self, osmParseObj, bounds, wgs84proj, proj):
 
 		#print "Lines and polygons"
 		wayLines = []
@@ -388,14 +391,19 @@ class OsmObjToLinesAndPolys(object):
 					wayLines.append(('tripoly', objId, tags, (tilePos, triangles)))
 				else:
 					latLons = [p[1] for p in wayNodes]
-					tilePos = []
-					for p in IgnoreNull(latLons):
-						tilePos.extend(wgs84proj.Proj(*p))
-					wayLines.append(('line', objId, tags, (tilePos, )))
-
+					if proj == "tile":
+						tilePos = []
+						for p in IgnoreNull(latLons):
+							tilePos.extend(wgs84proj.Proj(*p))
+						wayLines.append(('line', objId, tags, (tilePos, )))
+					if proj == "wgs84":
+						tilePos = []
+						for p in IgnoreNull(latLons):
+							tilePos.extend(p)
+						wayLines.append(('line', objId, tags, (tilePos, )))
 		return wayLines
 
-	def DoMultipolygons(self, osmParseObj, bounds, wgs84proj):
+	def DoMultipolygons(self, osmParseObj, bounds, wgs84proj, proj):
 		wayLines = []
 
 		#print "Processing multipolygons"
@@ -516,11 +524,17 @@ class OsmObjToLinesAndPolys(object):
 				pts, triangles = ProcessMultipolySingleOuterWay(outerWays[0][0], innerWays)
 				if pts is None: continue
 
-				tilePos = []
-				for p in IgnoreNull(pts):
-					tilePos.extend(wgs84proj.Proj(*p))
+				if proj=="tile":
+					tilePos = []
+					for p in IgnoreNull(pts):
+						tilePos.extend(wgs84proj.Proj(*p))
+					wayLines.append(('tripoly', objId, tags, (tilePos, triangles)))
 
-				wayLines.append(('tripoly', objId, tags, (tilePos, triangles)))
+				if proj == "wgs84":
+					tilePos = []
+					for p in IgnoreNull(pts):
+						tilePos.extend(p)
+					wayLines.append(('tripoly', objId, tags, (tilePos, triangles)))
 	
 			if len(outerWays) == 0: #Ignore shape if no outer way exists
 				continue
@@ -583,16 +597,17 @@ class OsmParse(object):
 		self.attr.pop()
 
 class OsmFileQuery(object):
-	def __init__(self, parent, name):
+	def __init__(self, parent, name, proj):
 		self.parent = parent
 		self.name = name
+		self.proj = proj
 		self.filter = OsmObjToLinesAndPolys()
 
 	def AddTagOfInterest(self, key, val, area = None):
 		self.filter.AddTagOfInterest(key, val, area)
 
 	def Do(self, tileCode, tileZoom, hints):
-		shapes, projInfo = self.filter.Do(self.parent.GetParsedData(), tileCode, tileZoom)
+		shapes, projInfo = self.filter.Do(self.parent.GetParsedData(), tileCode, tileZoom, self.proj)
 		return shapes, projInfo
 
 class OsmFile(object):
@@ -626,8 +641,8 @@ class OsmFile(object):
 
 		return self.osmParse
 
-	def CreateQuery(self, name):
-		q = OsmFileQuery(self, name)
+	def CreateQuery(self, name, proj="tile"):
+		q = OsmFileQuery(self, name, proj)
 		self.queries[name] = q
 		return q
 

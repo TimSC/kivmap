@@ -2,8 +2,8 @@
 import osmfile, pickle, os
 
 class OsmFileQueryCached(osmfile.OsmFileQuery):
-	def __init__(self, parent, name):
-		osmfile.OsmFileQuery.__init__(self, parent, name)
+	def __init__(self, parent, name, proj):
+		osmfile.OsmFileQuery.__init__(self, parent, name, proj)
 		self.storeResultsInCache = True
 
 	def AddTagOfInterest(self, key, val, area = None):
@@ -28,8 +28,8 @@ class OsmFileCached(osmfile.OsmFile):
 	def __init__(self, fina):
 		osmfile.OsmFile.__init__(self, fina)
 
-	def CreateQuery(self, name):
-		q = OsmFileQueryCached(self, name)
+	def CreateQuery(self, name, proj="tile"):
+		q = OsmFileQueryCached(self, name, proj)
 		self.queries[name] = q
 		return q
 
